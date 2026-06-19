@@ -1,1357 +1,973 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  Cake,
-  Calendar,
-  Clock,
-  DollarSign,
-  Phone,
-  FileText,
-  LayoutDashboard,
-  PlusCircle,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  BarChart3,
-  Layers,
-  ChevronRight,
-  TrendingUp,
-  Database,
-  Coffee,
-  Heart,
-  Lock,
-  Unlock,
-  KeyRound,
-  Upload,
-  Image as ImageIcon,
-  X,
-  User2Icon,
-  IndianRupee,
-  Tag
-} from 'lucide-react';
-import { supabase } from './supabaseClient';
+import React, { useState, useEffect, useRef } from 'react';
+import backgroundImage from './assets/image.png'; 
+import jaImage from './assets/logo.png'; 
 
-// =========================================================
-// SUPABASE CLIENT CONFIGURATION
-// Dynamic script loading is used to prevent bundler errors
-// =========================================================
-
-const cakeOrderSchema = import.meta.env.VITE_SUPABASE_SCHEMA;
-console.log(import.meta.env);
-
-const QUANTITIES = [
-  { id: 'medium', name: 'Medium' },
-  { id: 'large', name: 'Large' },
-  { id: 'custom', name: 'Add Quantity in Kg' }
-];
-
-
-const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSWORD;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('order-form');
-  const [orders, setOrders] = useState([]);
-  const [flavors, setFlavors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('wedding');
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [countdownTarget, setCountdownTarget] = useState('wedding');
+  
+  // Floating Interactive Hearts system
+  const [loveHearts, setLoveHearts] = useState([]);
+  
+  // Custom RSVP and Wishes guestbook states
+  const [rsvpStatus, setRsvpStatus] = useState({ 
+    name: '', 
+    email: '', 
+    attending: 'both', 
+    dietary: 'Traditional Sadya', 
+    wishes: '' 
+  });
+  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+  const [newWish, setNewWish] = useState({ name: '', text: '' });
+  
+  // Initial default guest wishing entries matching family and cousins
+  const [wishesList, setWishesList] = useState([]);
 
-  // Dynamic Supabase client reference
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [score, setScore] = useState(0);
+  const [quizFinished, setQuizFinished] = useState(false);
 
-  const [isLiveConnection, setIsLiveConnection] = useState(true);
-
-  // Admin Security session validation
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [passcodeInput, setPasscodeInput] = useState('');
-  const [passcodeError, setPasscodeError] = useState('');
-
-  // Toast System banner
-  const [toast, setToast] = useState(null);
-
-  // Form Parameters
-  const [orderType, setOrderType] = useState('Regular');
-  const [dateTime, setDateTime] = useState('');
-  const [flavor, setFlavor] = useState('');
-  const [quantity, setQuantity] = useState('medium');
-  const [customQtyDetails, setCustomQtyDetails] = useState('');
-  const [wishes, setWishes] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [advanceAmount, setAdvanceAmount] = useState('');
-  const [totalAmount, setTotalAmount] = useState('');
-  const [contactNo, setContactNo] = useState('');
-  const [designDetails, setDesignDetails] = useState('');
-  // flavor params
-  const [newFlavorName, setNewFlavorName] = useState('');
-  const [newFlavorId, setNewFlavorId] = useState('');
-  const [newFlavorPriceMedium, setNewFlavorPriceMedium] = useState('');
-  const [newFlavorPriceLarge, setNewFlavorPriceLarge] = useState('');
-  const [isSavingFlavor, setIsSavingFlavor] = useState(false);
-
-  // Image Storage Base64 parameters
-  const [referenceImage, setReferenceImage] = useState(null);
-  const [isCompilingImage, setIsCompilingImage] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const [filterDate, setFilterDate] = useState(() => new Date().toLocaleDateString('en-CA'));
-
-
-  // Full Screen Lightbox parameters
-  const [lightboxImage, setLightboxImage] = useState(null);
-
-  const handleResetToToday = () => {
-    setFilterDate(new Date().toLocaleDateString('en-CA'));
-  };
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
-
-  const balanceAmount = useMemo(() => {
-    const total = parseFloat(totalAmount) || 0;
-    const paid = parseFloat(advanceAmount) || 0;
-    return total - paid;
-  }, [totalAmount, advanceAmount]);
-
-
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      showToast("Please upload a valid image file.", "error");
-      return;
+  const triviaQuestions = [
+    {
+      question: "Where did Joseph & Aney first meet?",
+      options: ["At a family gathering", "Changanacherry Church youth festival", "Kumarakom lakeside retreat", "Through mutual cousins"],
+      correct: 1,
+      fact: "They crossed paths at a cultural youth church festival in Changanacherry, instantly sparking an eternal connection!"
+    },
+    {
+      question: "Which date marks the start of their Holy Matrimony?",
+      options: ["July 11th, 2026", "July 16th, 2026", "October 16th, 2026", "December 25th, 2026"],
+      correct: 1,
+      fact: "The Holy Matrimony takes place on Thursday, July 16th, 2026, at Nava Nazareth Church, Kumarakom!"
+    },
+    {
+      question: "What profession does Joseph belong to?",
+      options: ["Doctor", "Architect", "Advocate", "Software Engineer"],
+      correct: 2,
+      fact: "The groom, Joseph Stephen, is an esteemed Advocate practicing in the high courts!"
     }
+  ];
 
-    setIsCompilingImage(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 400; // Keep file extremely optimized for relational SQL
-        const scale = MAX_WIDTH / img.width;
-        canvas.width = MAX_WIDTH;
-        canvas.height = img.height * scale;
+  const [customGenPrompt, setCustomGenPrompt] = useState('Champagne');
+  const [customGenLoading, setCustomGenLoading] = useState(false);
 
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const canvasRef = useRef(null);
 
-        // Output optimized base64
-        const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-        setReferenceImage(optimizedBase64);
-        setIsCompilingImage(false);
-        showToast("Concept illustration compressed & attached!");
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  };
-
-
-
-
-  // Dynamically load Supabase client script inside the browser to avoid bundling issues
-
-
-  // Sync data streams once database client is resolved
   useEffect(() => {
-    if (!isLiveConnection || !supabase) {
-      // Offline local database engine
-      const localStored = localStorage.getItem('local_cake_orders');
-      if (localStored) {
-        setOrders(JSON.parse(localStored));
-      }
-      setLoading(false);
-      return;
+    // Inject custom elegant fonts dynamically to head
+    if (typeof document !== 'undefined' && !document.getElementById('invitation-fonts-v7')) {
+      const link = document.createElement('link');
+      link.id = 'invitation-fonts-v7';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&family=Great+Vibes&family=Pinyon+Script&display=swap';
+      document.head.appendChild(link);
     }
 
+    // Set countdown targets (July 11 and July 16, 2026)
+    const targetEngagement = new Date('2026-07-11T12:00:00');
+    const targetWedding = new Date('2026-07-16T15:30:00');
 
+    const updateCountdown = () => {
+      const now = new Date();
+      let target = countdownTarget === 'engagement' ? targetEngagement : targetWedding;
+      const difference = target.getTime() - now.getTime();
 
-    setLoading(true);
-
-    const fetchSQLOrders = async () => {
-      try {
-        const { data, error } = await supabase
-          .schema(cakeOrderSchema)
-          .from('orders')
-          .select('*');
-
-        if (error) throw error;
-        setOrders(data || []);
-      } catch (error) {
-        console.warn("SQL Fetch Error, defaulting to local simulation:", error);
-        showToast("Database restricted. Operating in local simulation mode.", "error");
-        setIsLiveConnection(false);
-
-        const localStored = localStorage.getItem('local_cake_orders');
-        if (localStored) setOrders(JSON.parse(localStored));
-      } finally {
-        setLoading(false);
-      }
-    };
-    const fetchFlavors = async () => {
-      const { data, error } = await supabase
-        .schema(cakeOrderSchema)
-        .from('flavors')
-        .select('id, name, price_medium, price_large'); // Fetch prices
-
-      if (error) {
-        console.error("Error fetching flavors:", error);
+      if (difference > 0) {
+        const d = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((difference % (1000 * 60)) / 1000);
+        setTimeLeft({ days: d, hours: h, minutes: m, seconds: s });
       } else {
-        console.log("Data returned from Supabase:", data);
-        setFlavors(data || []);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       }
     };
 
-    fetchSQLOrders();
-    fetchFlavors();
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [countdownTarget]);
 
-    // Configure Realtime PostgreSQL Replication Pipeline
-    const ordersChannel = supabase
-      .channel('realtime_orders_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: cakeOrderSchema, table: 'orders' },
-        () => {
-          fetchSQLOrders(); // Refresh values dynamically on Postgres signals
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    class PeachPetal {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * -height - 20;
+        this.size = Math.random() * 8 + 6;
+        this.speedX = Math.random() * 1.2 - 0.6;
+        this.speedY = Math.random() * 1.0 + 0.5;
+        this.angle = Math.random() * 360;
+        this.spin = Math.random() * 1.5 - 0.75;
+        this.opacity = Math.random() * 0.45 + 0.35;
+        this.color = `rgba(${235 + Math.floor(Math.random() * 20)}, ${170 + Math.floor(Math.random() * 25)}, ${150 + Math.floor(Math.random() * 25)}, ${this.opacity})`;
+      }
+
+      update(mouseX, mouseY) {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.angle += this.spin;
+
+        // Interactive mouse repellent force
+        if (mouseX !== undefined && mouseY !== undefined) {
+          const dx = this.x - mouseX;
+          const dy = this.y - mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            const force = (150 - dist) / 150;
+            this.x += (dx / dist) * force * 3;
+            this.y += (dy / dist) * force * 2;
+          }
         }
-      )
-      .subscribe();
+
+        if (this.y > height || this.x < -20 || this.x > width + 20) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.angle * Math.PI) / 180);
+        ctx.fillStyle = this.color;
+        
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(this.size * 1.2, -this.size / 2, this.size * 1.2, this.size, 0, this.size * 1.4);
+        ctx.bezierCurveTo(-this.size, this.size, -this.size / 2, -this.size / 2, 0, 0);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class GoldDust {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2.2 + 0.4;
+        this.speedX = Math.random() * 0.3 - 0.15;
+        this.speedY = Math.random() * 0.4 + 0.1;
+        this.opacity = Math.random() * 0.6 + 0.2;
+        this.blinkSpeed = Math.random() * 0.02 + 0.005;
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.opacity += this.blinkSpeed;
+        
+        if (this.opacity > 0.85 || this.opacity < 0.15) {
+          this.blinkSpeed = -this.blinkSpeed;
+        }
+
+        if (this.y > height || this.x < 0 || this.x > width) {
+          this.reset();
+          this.y = 0;
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#D4AF37';
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    const petals = Array.from({ length: 28 }, () => new PeachPetal());
+    const sparks = Array.from({ length: 60 }, () => new GoldDust());
+
+    let mouseX = undefined;
+    let mouseY = undefined;
+
+    const handleMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length > 0) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      
+      sparks.forEach((s) => {
+        s.update();
+        s.draw();
+      });
+
+      petals.forEach((p) => {
+        p.update(mouseX, mouseY);
+        p.draw();
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
 
     return () => {
-      supabase.removeChannel(ordersChannel);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [isLiveConnection, supabase]);
+  }, []);
 
-  const handleFlavorNameChange = (e) => {
-    const val = e.target.value;
-    setNewFlavorName(val);
-    const generatedSlug = val
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-_]/g, '')
-      .replace(/\s+/g, '_');
-    setNewFlavorId(generatedSlug);
+  const triggerLoveShower = () => {
+    const freshHeart = {
+      id: Date.now() + Math.random(),
+      x: Math.random() * 80 + 10,
+      size: Math.random() * 20 + 20,
+      rotate: Math.random() * 45 - 22.5
+    };
+    setLoveHearts(prev => [...prev, freshHeart]);
+    
+    setTimeout(() => {
+      setLoveHearts(prev => prev.filter(h => h.id !== freshHeart.id));
+    }, 5000);
   };
 
-  // Insert a new flavor row to Supabase VITE_SUPABASE_SCHEMA.flavors
-  const handleAddFlavor = async (e) => {
+  const handleOpenInvitation = () => {
+    setIsOpen(true);
+    for (let i = 0; i < 6; i++) {
+      setTimeout(triggerLoveShower, i * 250);
+    }
+  };
+
+  const handleRSVPSubmit = (e) => {
     e.preventDefault();
-    if (!newFlavorName.trim()) {
-      return showToast("Flavor Name required.", "error");
-    }
-
-    setIsSavingFlavor(true);
-    const payload = {
-      id: newFlavorId.trim(),
-      name: newFlavorName.trim(),
-      price_medium: Number(newFlavorPriceMedium) || 0,
-      price_large: Number(newFlavorPriceLarge) || 0
+    if (!rsvpStatus.name.trim() || !rsvpStatus.email.trim()) return;
+    setRsvpSubmitted(true);
+    
+    const welcomeWish = {
+      name: rsvpStatus.name,
+      date: 'Just now',
+      text: rsvpStatus.wishes.trim() 
+        ? `${rsvpStatus.wishes} (Attending: ${rsvpStatus.attending === 'both' ? 'Both Ceremonies' : rsvpStatus.attending})`
+        : `Excitedly joining the celebrations! Hearty congratulations Joseph & Aney.`
     };
-
-    try {
-      if (isLiveConnection && supabase) {
-        const { error } = await supabase
-          .schema(cakeOrderSchema)
-          .from('flavors')
-          .insert([payload]);
-
-        if (error) throw error;
-      } else {
-        const updated = [...flavors, payload];
-        setFlavors(updated);
-        localStorage.setItem('local_cake_flavors', JSON.stringify(updated));
-      }
-
-      showToast(`🎉 Flavor "${newFlavorName}" added and synced!`);
-      setNewFlavorName('');
-      setNewFlavorId('');
-      setNewFlavorPriceMedium('');
-      setNewFlavorPriceLarge('');
-    } catch (err) {
-      console.error("Failed to append new database flavor row:", err);
-      showToast("Relational insert failure. The key ID might already exist.", "error");
-    } finally {
-      setIsSavingFlavor(false);
-    }
+    setWishesList([welcomeWish, ...wishesList]);
+    triggerLoveShower();
   };
 
-  const handleSubmitOrder = async (e) => {
+  const handleWishSubmit = (e) => {
     e.preventDefault();
-
-    if (!dateTime) return showToast("Please select Order date and time.", "error");
-    if (!flavor) return showToast("Please select a flavor.", "error");
-    if (!contactNo) return showToast("Please input customer contact number.", "error");
-    if (!customerName) return showToast("Please input customer name.", "error");
-    if (orderType === 'Theme' && !designDetails.trim()) {
-      return showToast("Please describe the design specifications for your Theme Cake.", "error");
-    }
-
-    setIsSubmitting(true);
-
-    const total = parseFloat(totalAmount) || 0;
-    const paid = parseFloat(advanceAmount) || 0;
-    const finalBalance = total - paid;
-
-    const orderPayload = {
-      order_type: orderType,
-      date_time: dateTime,
-      flavor: flavor,
-      quantity: quantity,
-      custom_qty_details: quantity === 'custom' ? customQtyDetails : '',
-      wishes: wishes.trim(),
-      advance_amount: Number(advanceAmount) || 0,
-      balance_amount: finalBalance || 0,
-      total_amount: Number(totalAmount) || 0,
-      customer_name: customerName,
-      contact_no: contactNo.trim(),
-      design_details: orderType === 'Theme' ? designDetails.trim() : '',
-      image_data: orderType === 'Theme' ? referenceImage : null,
-      created_at: new Date().toISOString()
+    if (!newWish.name.trim() || !newWish.text.trim()) return;
+    const addedWish = {
+      name: newWish.name,
+      date: 'Just now',
+      text: newWish.text
     };
+    setWishesList([addedWish, ...wishesList]);
+    setNewWish({ name: '', text: '' });
+    triggerLoveShower();
+  };
 
-    try {
-      if (isLiveConnection && supabase) {
-        // Insert clean rows directly to hosted cloud PostgreSQL
-        const { error } = await supabase
-          .schema(cakeOrderSchema)
-          .from('orders')
-          .insert([orderPayload]);
-
-        if (error) throw error;
-      } else {
-        // Safe mock local storage backup fallback
-        const backupList = [...orders, { id: crypto.randomUUID(), ...orderPayload }];
-        setOrders(backupList);
-        localStorage.setItem('local_cake_orders', JSON.stringify(backupList));
-      }
-
-      showToast("🎉 Cake order recorded & synced successfully!");
-      resetFormInputs();
-
-      setTimeout(() => {
-        setActiveTab('dashboard');
-      }, 1000);
-
-    } catch (err) {
-      console.error("PostgreSQL Insert Failed:", err);
-      showToast("Relational write failed. Check connection or tables.", "error");
-    } finally {
-      setIsSubmitting(false);
+  const handleQuizAnswer = (i) => {
+    setSelectedAnswer(i);
+    if (i === triviaQuestions[currentQuestion].correct) {
+      setScore(score + 1);
     }
   };
 
-  const resetFormInputs = () => {
-    setOrderType('Regular');
-    setDateTime('');
-    setFlavor('');
-    setQuantity('medium');
-    setCustomQtyDetails('');
-    setWishes('');
-    setCustomerName('');
-    setAdvanceAmount('');
-    setContactNo('');
-    setDesignDetails('');
-    setReferenceImage(null);
-  };
-
-  const handleSeedMockData = async () => {
-    const today = new Date();
-    const formatDateStr = (hoursOffset) => {
-      const d = new Date(today);
-      d.setHours(d.getHours() + hoursOffset);
-      return d.toISOString().slice(0, 16);
-    };
-
-    const mockDataset = [
-      {
-        order_type: 'Theme',
-        date_time: formatDateStr(2),
-        flavor: 'chocolate_fudge',
-        quantity: 'large',
-        custom_qty_details: '',
-        wishes: 'Happy Birthday Ethan!',
-        advance_amount: 40.00,
-        balance_amount: 80.00,
-        contact_no: '+1 (555) 019-1234',
-        design_details: 'Cosmic stars layout on custom royal dark frosting tier.',
-        image_data: null,
-        created_at: new Date().toISOString()
-      },
-      {
-        order_type: 'Regular',
-        date_time: formatDateStr(4),
-        flavor: 'red_velvet',
-        quantity: 'medium',
-        custom_qty_details: '',
-        wishes: 'Warm Congratulations!',
-        advance_amount: 15.00,
-        balance_amount: 45.00,
-        contact_no: '+1 (555) 321-7654',
-        design_details: '',
-        image_data: null,
-        created_at: new Date().toISOString()
-      },
-      {
-        order_type: 'Theme',
-        date_time: formatDateStr(6),
-        flavor: 'mango_passion',
-        quantity: 'custom',
-        custom_qty_details: 'Double tier tower base',
-        wishes: 'Congratulations Sarah!',
-        advance_amount: 120.00,
-        balance_amount: 280.00,
-        contact_no: '+1 (555) 789-4560',
-        design_details: 'Summer floral textures, matching gold leaf details.',
-        image_data: null,
-        created_at: new Date().toISOString()
-      }
-    ];
-
-    try {
-      if (isLiveConnection && supabase) {
-        showToast("Writing simulated records directly to cloud SQL...");
-        const { error } = await supabase.from('orders').insert(mockDataset);
-        if (error) throw error;
-        showToast("Database loaded with test items!");
-      } else {
-        const merged = [...orders, ...mockDataset.map(d => ({ id: crypto.randomUUID(), ...d }))];
-        setOrders(merged);
-        localStorage.setItem('local_cake_orders', JSON.stringify(merged));
-        showToast("Simulated memory rows populated!");
-      }
-    } catch (e) {
-      console.error(e);
-      showToast("Could not inject mock metrics.", "error");
-    }
-  };
-
-  const handleAdminVerify = (e) => {
-    e.preventDefault();
-    if (passcodeInput === ADMIN_PASSCODE) {
-      setIsAdmin(true);
-      setPasscodeError('');
-      setPasscodeInput('');
-      showToast("🔒 Admin access granted. Kitchen session active.");
+  const handleNextQuiz = () => {
+    setSelectedAnswer(null);
+    if (currentQuestion < triviaQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      setPasscodeError("Passcode incorrect. Access denied.");
+      setQuizFinished(true);
     }
   };
 
-  const handleAdminLogout = () => {
-    setIsAdmin(false);
-    showToast("Admin dashboard locked.");
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setScore(0);
+    setQuizFinished(false);
   };
 
-  const analytics = useMemo(() => {
-    const flavorCounts = {};
-    flavors.forEach(f => { flavorCounts[f.id] = 0; });
-
-    orders.forEach(order => {
-      const fId = order.flavor;
-      if (flavorCounts[fId] !== undefined) {
-        flavorCounts[fId] += 1;
-      } else {
-        flavorCounts[fId] = (flavorCounts[fId] || 0) + 1;
-      }
-    });
-
-    const flavorAllTimeSummary = Object.keys(flavorCounts).map(id => {
-      const meta = flavors.find(f => f.id === id);
-      return {
-        id,
-        name: meta ? meta.name : id,
-        count: flavorCounts[id]
-      };
-    }).sort((a, b) => b.count - a.count);
-
-    // 1. Filter based on selected date
-    const selectedDateStr = filterDate;
-    const targetDateOrders = orders.filter(order => {
-      if (!order.date_time) return false;
-      const orderDateStr = order.date_time.split('T')[0];
-      return orderDateStr === selectedDateStr;
-    });
-
-    // Sort order list chronological ascending
-    const targetOrdersSorted = [...targetDateOrders].sort((a, b) => {
-      const timeA = a.date_time.split('T')[1] || '';
-      const timeB = b.date_time.split('T')[1] || '';
-      return timeA.localeCompare(timeB);
-    });
-
-    const todayFlavorSizes = {};
-    targetOrdersSorted.forEach(order => {
-      const flv = order.flavor;
-      const qty = order.quantity;
-
-      if (!todayFlavorSizes[flv]) {
-        todayFlavorSizes[flv] = { medium: 0, large: 0, custom: 0, total: 0 };
-      }
-      todayFlavorSizes[flv][qty] += 1;
-      todayFlavorSizes[flv].total += 1;
-    });
-
-    const todaySummaryData = Object.keys(todayFlavorSizes).map(flvId => {
-      const meta = flavors.find(f => f.id === flvId);
-      return {
-        id: flvId,
-        name: meta ? meta.name : flvId,
-        sizes: todayFlavorSizes[flvId]
-      };
-    }).sort((a, b) => b.sizes.total - a.sizes.total);
-
-    // 2. Calculate actual today's counter strictly for the tab notification badge
-    const todayLocalStr = new Date().toLocaleDateString('en-CA');
-    const strictlyTodayCount = orders.filter(order => {
-      if (!order.date_time) return false;
-      return order.date_time.split('T')[0] === todayLocalStr;
-    }).length;
-
-    return {
-      totalAllTimeOrders: orders.length,
-      flavorAllTimeSummary,
-      todayOrders: targetOrdersSorted, // Renamed internally for compatibility but represents selected date
-      todaySummaryData,
-      todayCount: strictlyTodayCount,  // Strictly actual today's count for notification bubble
-      selectedDateCount: targetDateOrders.length
-    };
-  }, [orders, flavors, filterDate]);
+  const handleCustomImageGeneration = (selected) => {
+    setCustomGenLoading(true);
+    setCustomGenPrompt(selected);
+    setTimeout(() => {
+      setCustomGenLoading(false);
+    }, 850);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-pink-50 text-slate-800 font-sans">
+    <div className="min-h-screen relative overflow-x-hidden bg-[#FFFBF9] text-[#5A4540] font-montserrat select-none">
+      
+      {/* Absolute Global Overrides & Critical Animations */}
+      <style>{`
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-vibes { font-family: 'Great Vibes', cursive; }
+        .font-pinyon { font-family: 'Pinyon Script', cursive; }
+        
+        @keyframes gentle-glow {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+          50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(254, 219, 196, 0.8); }
+        }
+        
+        @keyframes drape-sway {
+          0%, 100% { transform: rotate(0deg) scaleX(1); }
+          50% { transform: rotate(1.2deg) scaleX(1.04); }
+        }
 
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-rose-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-white-50 text-pink-600 rounded-2xl shadow-inner">
-              <img src="/header-image.png" className="w-55 h-15" />
-            </div>
+        @keyframes heart-pulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(193, 39, 45, 0.4)); }
+          50% { transform: scale(1.25); filter: drop-shadow(0 0 10px rgba(193, 39, 45, 0.8)); }
+        }
+
+        @keyframes float-up {
+          0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+          10% { opacity: 0.85; }
+          100% { transform: translateY(-120px) rotate(360deg) scale(1.3); opacity: 0; }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        
+        .animate-gentle-glow {
+          animation: gentle-glow 4s infinite ease-in-out;
+        }
+        
+        .animate-drape-sway {
+          animation: drape-sway 6s infinite ease-in-out;
+        }
+
+        .animate-heart-pulse {
+          animation: heart-pulse 1.5s infinite ease-in-out;
+        }
+
+        .animate-float-up {
+          animation: float-up 5s linear forwards;
+        }
+
+        .shimmer-loading {
+          background: linear-gradient(90deg, #FDF5F2 25%, #FCE4DC 50%, #FDF5F2 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
+
+        .premium-border {
+          border: 2px solid;
+          border-image: linear-gradient(to right, #E5A995, #FCD9CC, #D4AF37, #FCD9CC, #E5A995) 1;
+        }
+        
+        .shimmer-btn {
+          position: relative;
+          overflow: hidden;
+        }
+        .shimmer-btn::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: linear-gradient(to right, transparent, rgba(255,255,255,0.35), transparent);
+          transform: rotate(30deg);
+          transition: 0.8s;
+          opacity: 0;
+        }
+        .shimmer-btn:hover::after {
+          opacity: 1;
+          left: 120%;
+        }
+      `}</style>
+
+      {/* Live Falling Petals Canvas */}
+      <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-10" />
+
+      {/* Love shower hearts trigger container */}
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {loveHearts.map((heart) => (
+          <div 
+            key={heart.id}
+            className="absolute bottom-0 animate-float-up text-red-400 opacity-90"
+            style={{ 
+              left: `${heart.x}%`, 
+              fontSize: `${heart.size}px`,
+              transform: `rotate(${heart.rotate}deg)`
+            }}
+          >
+            ❤️
           </div>
+        ))}
+      </div>
 
-          <div className="flex items-center gap-3">
-            {/* Live Indicator Chip */}
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${isLiveConnection
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}>
-              <Database className="w-3.5 h-3.5" />
-              {isLiveConnection ? "Live Data" : "Local Data"}
-            </span>
-
-            <nav className="flex bg-rose-50 p-1 rounded-xl border border-rose-100/60 items-center">
-              <button
-                onClick={() => setActiveTab('order-form')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${activeTab === 'order-form'
-                    ? 'bg-white text-pink-600 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
-                  }`}
-              >
-                <PlusCircle className="w-4 h-4" />
-                Place Order
-              </button>
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 relative ${activeTab === 'dashboard'
-                    ? 'bg-white text-pink-600 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
-                  }`}
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Dashboard
-                {analytics.todayCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">
-                    {analytics.todayCount}
-                  </span>
-                )}
-              </button>
-
-              {isAdmin && (
-                <button
-                  onClick={() => setActiveTab('manage-flavors')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${activeTab === 'manage-flavors'
-                      ? 'bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-sm'
-                      : 'text-pink-600 bg-pink-100 hover:bg-pink-200'
-                    }`}
-                >
-                  <Layers className="w-4 h-4" />
-                  Manage Flavors
-                </button>
-              )}
-
-              {isAdmin && (
-                <button
-                  onClick={handleAdminLogout}
-                  className="ml-2 p-1.5 bg-rose-100/70 text-rose-700 hover:bg-rose-200 rounded-lg text-xs"
-                  title="Lock admin session"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* TOAST PANEL */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-bounce">
-          <div className={`p-4 rounded-xl shadow-lg flex items-center gap-3 border ${toast.type === 'error'
-              ? 'bg-rose-50 border-rose-200 text-rose-800'
-              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            }`}>
-            {toast.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-600" /> : <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
-            <span className="text-sm font-semibold">{toast.message}</span>
-          </div>
-        </div>
-      )}
-
-      {/* FULL PREVIEW LIGHTBOX */}
-      {lightboxImage && (
-        <div
-          className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all"
-          onClick={() => setLightboxImage(null)}
+      {/* MONOGRAM DOOR GATEKEEPER / ENVELOPE */}
+      <div 
+        className={`fixed inset-0 z-50 flex transition-all duration-[1200ms] ${isOpen ? 'pointer-events-none opacity-0 scale-105' : 'opacity-100'}`}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.77, 0, 0.175, 1)' }}
+      >
+        
+        {/* LEFT FLAP */}
+        <div 
+          className={`w-1/2 h-full bg-[#FCF6F2] flex items-center justify-end relative overflow-hidden border-r border-[#E5A995]/30 transition-transform duration-[1200ms] ${isOpen ? '-translate-x-full' : 'translate-x-0'}`}
+          style={{ transitionTimingFunction: 'cubic-bezier(0.77, 0, 0.175, 1)' }}
         >
-          <div className="relative max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <button
-              className="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-800 p-2 rounded-full transition-all"
-              onClick={() => setLightboxImage(null)}
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <img
-              src={lightboxImage}
-              alt="Design Specification Reference"
-              className="w-full max-h-[70vh] object-contain bg-slate-50"
-            />
-            <div className="p-5 border-t border-slate-100 bg-slate-50">
-              <h4 className="font-bold text-slate-800">Theme Design Reference Photo</h4>
-              <p className="text-xs text-slate-500 mt-1">Stored securely inside your relational schema.</p>
-            </div>
+          {/* Detailed Golden Damask Lace SVG Watermark */}
+          <div className="absolute right-0 top-0 w-full h-full pointer-events-none opacity-[0.06] flex items-center justify-end pr-10">
+            <svg width="400" height="400" viewBox="0 0 100 100" fill="none" stroke="#A86450" strokeWidth="0.8">
+              <circle cx="100" cy="50" r="45" />
+              <circle cx="100" cy="50" r="35" strokeDasharray="2,2" />
+              <circle cx="100" cy="50" r="25" />
+              <path d="M 55,50 Q 80,20 100,50 T 100,80 Q 80,80 55,50" />
+              <path d="M 65,50 Q 85,30 100,50 T 100,70 Q 85,70 65,50" />
+              <path d="M 100,50 L 50,50" />
+            </svg>
+          </div>
+
+          <div className="absolute right-25 top-20 -translate-y-1 text-center rotate-180 flex flex-col items-center" style={{ writingMode: 'vertical-rl' }}>
+            <span className="font-cinzel text-xl md:text-3xl font-bold tracking-[0.5em] text-[#A86450] opacity-90">
+              YOU ARE INVITED
+            </span>
           </div>
         </div>
-      )}
 
-      {/* VIEW LAYOUT PANEL */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* GLOWING WAX SEAL BUTTON */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col items-center">
+          <button 
+            onClick={handleOpenInvitation}
+            className={`w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#FFF3E3] to-[#B89047] p-[4px] shadow-[0_20px_50px_rgba(229,169,149,0.5)] animate-gentle-glow transition-all duration-700 hover:scale-110 active:scale-95 flex items-center justify-center ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
+          >
+            <div className="w-full h-full rounded-full bg-[#FAF0EC] flex flex-col items-center justify-center relative overflow-hidden hover:bg-[#FBE6DE] transition-colors duration-500">
+              <div className="absolute inset-2 border-2 border-[#D4AF37]/60 rounded-full" />
+              <div className="absolute inset-3 border border-dashed border-[#D4AF37]/30 rounded-full" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,210,196,0.45)_0%,transparent_75%)] pointer-events-none" />
+              
+              <span className="font-pinyon text-5xl md:text-6xl text-[#8E4A37] font-bold select-none tracking-tight"><img src={jaImage}></img></span>
+              <span className="font-cinzel text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-[#8E4A37] font-bold mt-2 select-none animate-pulse">Open Invitation</span>
+            </div>
+          </button>
+          
+        
+        </div>
 
-        {/* VIEW 1: CAKE FORM */}
-        {activeTab === 'order-form' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* FORM COMPONENT */}
-            <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl border border-rose-100/60 p-6 sm:p-8">
-              <div className="border-b border-rose-100 pb-4 mb-6">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <Cake className="w-5 h-5 text-pink-500" />
-                  Place Your Cake Order
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">Fields marked * are required.</p>
+        {/* RIGHT FLAP */}
+        <div 
+          className={`w-1/2 h-full bg-[#FCF6F2] flex items-center justify-start relative overflow-hidden border-l border-[#E5A995]/30 transition-transform duration-[1200ms] ${isOpen ? 'translate-x-full' : 'translate-x-0'}`}
+          style={{ transitionTimingFunction: 'cubic-bezier(0.77, 0, 0.175, 1)' }}
+        >
+          {/* Symmetric Detailed Golden Damask Lace SVG Watermark */}
+          <div className="absolute left-0 top-0 w-full h-full pointer-events-none opacity-[0.06] flex items-center justify-start pl-10">
+            <svg width="400" height="400" viewBox="0 0 100 100" fill="none" stroke="#A86450" strokeWidth="0.8">
+              <circle cx="0" cy="50" r="45" />
+              <circle cx="0" cy="50" r="35" strokeDasharray="2,2" />
+              <circle cx="0" cy="50" r="25" />
+              <path d="M 45,50 Q 20,20 0,50 T 0,80 Q 20,80 45,50" />
+              <path d="M 35,50 Q 15,30 0,50 T 0,70 Q 15,70 35,50" />
+              <path d="M 0,50 L 50,50" />
+            </svg>
+          </div>
+
+        </div>
+      </div>
+
+      {/* MAIN INVITATION CARD CONTENT */}
+      <div className={`relative z-20 min-h-screen transition-all duration-[1000ms] ${isOpen ? 'opacity-100' : 'opacity-0 filter blur-lg pointer-events-none'}`}>
+        
+        {/* FLOAT HEART LAUNCHER */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <button 
+            onClick={triggerLoveShower}
+            className="w-14 h-14 bg-white/95 rounded-full shadow-lg border border-[#E5A995]/40 text-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform hover:bg-[#FFF2EC] group"
+            title="Shower the couple with love!"
+          >
+            <span className="group-hover:animate-bounce">❤️</span>
+          </button>
+        </div>
+
+        {/* SECTION 1: COVER ILLUSTRATION & INTERACTIVE CALENDAR */}
+        <section className="relative pt-12 pb-8 px-4 flex flex-col items-center justify-center text-center">
+          <div className="max-w-4xl w-full bg-[#FFFAF7] rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.25)] border border-[#E5A995]/20 p-5 md:p-12 relative overflow-hidden">           
+            <div className="absolute top-0 left-0 w-32 h-32 opacity-40 pointer-events-none bg-gradient-to-br from-[#FBD2C4] to-transparent rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-32 h-32 opacity-40 pointer-events-none bg-gradient-to-bl from-[#FBD2C4] to-transparent rounded-full blur-3xl" />
+
+            {/* July 2026 header script */}
+            <div className="relative mb-4">
+              <span className="font-vibes text-5xl md:text-6xl text-[#D4AF37] block leading-tight">July</span>
+              <span className="font-playfair text-xl md:text-2xl font-bold text-[#8E4A37] tracking-wider -mt-2 block">2026</span>
+            </div>
+
+            {/* Live Interactive Calendar Grid */}
+            <div className="max-w-xs mx-auto mb-8 bg-[#FFF2EC]/90 rounded-3xl p-5 border border-[#E5A995]/30 shadow-inner">
+              <div className="grid grid-cols-7 gap-1 text-xs font-bold text-[#8E4A37] border-b border-[#E5A995]/30 pb-2 mb-2">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+              </div>
+              <div className="grid grid-cols-7 gap-2 text-xs font-semibold text-[#5A4540]">
+                <span className="text-[#D6C2BD]"></span><span className="text-[#D6C2BD]"></span><span className="text-[#D6C2BD]"></span>
+                <span className="py-1">1</span><span className="py-1">2</span><span className="py-1">3</span><span className="py-1">4</span><span className="py-1">5</span>
+                <span className="py-1">6</span><span className="py-1">7</span><span className="py-1">8</span><span className="py-1">9</span><span className="py-1">10</span>
+                
+                {/* 11th - Engagement Ceremony with Red Pulsing Heart */}
+                <div 
+                  className="relative flex items-center justify-center py-1 cursor-pointer transition-transform hover:scale-125"
+                  onClick={() => {
+                    setActiveTab('engagement');
+                    const element = document.getElementById('ceremonies-section');
+                    if (element) element.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  title="Click to view Engagement details!"
+                >
+                  <span className="absolute text-[#C1272D] text-2xl animate-heart-pulse">❤️</span>
+                  <span className="relative z-10 text-white font-bold text-[10px]">11</span>
+                </div>
+                
+                <span className="py-1">12</span><span className="py-1">13</span><span className="py-1">14</span><span className="py-1">15</span>
+                
+                {/* 16th - Wedding Ceremony with Red Pulsing Heart */}
+                <div 
+                  className="relative flex items-center justify-center py-1 cursor-pointer transition-transform hover:scale-125"
+                  onClick={() => {
+                    setActiveTab('wedding');
+                    const element = document.getElementById('ceremonies-section');
+                    if (element) element.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  title="Click to view Wedding details!"
+                >
+                  <span className="absolute text-[#C1272D] text-2xl animate-heart-pulse">❤️</span>
+                  <span className="relative z-10 text-white font-bold text-[10px]">16</span>
+                </div>
+                
+                <span className="py-1">17</span><span className="py-1">18</span><span className="py-1">19</span>
+                <span className="py-1">20</span><span className="py-1">21</span><span className="py-1">22</span><span className="py-1">23</span><span className="py-1">24</span><span className="py-1">25</span><span className="py-1">26</span>
+                <span className="py-1">27</span><span className="py-1">28</span><span className="py-1">29</span><span className="py-1">30</span><span className="py-1">31</span>
+              </div>
+            </div>
+
+            {/* Custom SVG Watercolor Couple & Flower Arch Illustration */}
+            <div className="w-full max-w-lg mx-auto relative mt-6 mb-4" >
+              <img 
+                src= {backgroundImage}
+                alt="Couple" 
+              />
+              <p className="font-pinyon text-4xl text-[#A86450] mt-1">Aney & Joseph</p>
+            </div>
+
+            <p className="text-xs italic text-[#A86450] font-semibold max-w-sm mx-auto">
+              Tip: Tap the calendar hearts (<span className="text-[#C1272D]">❤️</span>) to explore event details below!
+            </p>
+          </div>
+        </section>
+
+        {/* COUNTDOWN SECTION */}
+        <section className="py-16 bg-gradient-to-b from-[#FFFAF7] via-[#FFF2EC] to-[#FFFAF7] border-t border-b border-[#E5A995]/30 shadow-md relative z-30 overflow-hidden">
+          <div className="absolute top-1/2 left-1/4 w-72 h-72 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,#FCD9CC_0%,transparent_70%)] blur-3xl -translate-y-1/2" />
+          <div className="absolute top-1/2 right-1/4 w-72 h-72 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] blur-3xl -translate-y-1/2" />
+
+          <div className="max-w-4xl mx-auto text-center px-4 relative">
+            <span className="font-cinzel text-[10px] md:text-xs tracking-[0.4em] uppercase text-[#A86450] font-bold block mb-2">
+              THE COUNTDOWN TO FOREVER
+            </span>
+            <h3 className="font-playfair text-3xl font-semibold text-[#5A4540] mb-3">
+              Time until we say "I Do"
+            </h3>
+            <p className="text-xs text-[#A86450] italic max-w-md mx-auto mb-8 leading-relaxed">
+              Every second brings us closer to a lifetime of happiness. Select a celebration milestone to watch the stars realign:
+            </p>
+
+            {/* Premium Target Toggle buttons */}
+            <div className="inline-flex p-1.5 bg-white/90 border border-[#E5A995]/40 rounded-full shadow-[0_10px_25px_rgba(229,169,149,0.15)] mb-10 transition-all hover:border-[#D4AF37]/50">
+              <button
+                onClick={() => setCountdownTarget('engagement')}
+                className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'engagement' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
+              >
+                💍 To Engagement (July 11)
+              </button>
+              <button
+                onClick={() => setCountdownTarget('wedding')}
+                className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'wedding' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
+              >
+                💖To Wedding (July 16)
+              </button>
+            </div>
+
+            {/* Glowing Ring-Dial Countdown Design */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto mb-12">
+              
+              {/* DAYS DIAL */}
+              <div className="bg-white/75 backdrop-blur-md rounded-3xl p-5 border border-[#E5A995]/25 shadow-lg relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FFF7F4] to-transparent opacity-60" />
+                <div className="relative flex flex-col items-center">
+                  <svg className="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="#FFF0EB" strokeWidth="4" fill="transparent" />
+                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="6" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={(2 * Math.PI * 40) * (1 - Math.min(timeLeft.days, 365) / 365)} strokeLinecap="round" fill="transparent" className="transition-all duration-1000" />
+                  </svg>
+                  <div className="absolute top-[34px] left-1/2 -translate-x-1/2 text-center">
+                    <span className="block font-cinzel text-2xl md:text-3xl font-extrabold text-[#8E4A37] tracking-tighter leading-none group-hover:scale-110 transition-transform">
+                      {timeLeft.days}
+                    </span>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#A86450] font-bold mt-4 block">Days</span>
+                </div>
               </div>
 
-              <form onSubmit={handleSubmitOrder} className="space-y-6">
-
-                {/* 1. ORDER SELECTOR TYPE */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Order Type *</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderType('Regular');
-                        setReferenceImage(null);
-                      }}
-                      className={`py-3 px-4 rounded-xl font-semibold text-sm border transition-all ${orderType === 'Regular'
-                          ? 'bg-rose-50/50 border-pink-500 text-pink-700 ring-2 ring-pink-500/10'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                      🍰 Regular Cake
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrderType('Theme')}
-                      className={`py-3 px-4 rounded-xl font-semibold text-sm border transition-all ${orderType === 'Theme'
-                          ? 'bg-rose-50/50 border-pink-500 text-pink-700 ring-2 ring-pink-500/10'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                      ✨ Theme/Designer Cake
-                    </button>
+              {/* HOURS DIAL */}
+              <div className="bg-white/75 backdrop-blur-md rounded-3xl p-5 border border-[#E5A995]/25 shadow-lg relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FFF7F4] to-transparent opacity-60" />
+                <div className="relative flex flex-col items-center">
+                  <svg className="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="#FFF0EB" strokeWidth="4" fill="transparent" />
+                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="6" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={(2 * Math.PI * 40) * (1 - timeLeft.hours / 24)} strokeLinecap="round" fill="transparent" className="transition-all duration-1000" />
+                  </svg>
+                  <div className="absolute top-[34px] left-1/2 -translate-x-1/2 text-center">
+                    <span className="block font-cinzel text-2xl md:text-3xl font-extrabold text-[#8E4A37] tracking-tighter leading-none group-hover:scale-110 transition-transform">
+                      {timeLeft.hours}
+                    </span>
                   </div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#A86450] font-bold mt-4 block">Hours</span>
                 </div>
+              </div>
 
-                {/* 2. DATETIME & CONTACT */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-slate-400" />
-                      Customer Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder='Enter Customer Name'
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
+              {/* MINUTES DIAL */}
+              <div className="bg-white/75 backdrop-blur-md rounded-3xl p-5 border border-[#E5A995]/25 shadow-lg relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FFF7F4] to-transparent opacity-60" />
+                <div className="relative flex flex-col items-center">
+                  <svg className="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="#FFF0EB" strokeWidth="4" fill="transparent" />
+                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="6" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={(2 * Math.PI * 40) * (1 - timeLeft.minutes / 60)} strokeLinecap="round" fill="transparent" className="transition-all duration-1000" />
+                  </svg>
+                  <div className="absolute top-[34px] left-1/2 -translate-x-1/2 text-center">
+                    <span className="block font-cinzel text-2xl md:text-3xl font-extrabold text-[#8E4A37] tracking-tighter leading-none group-hover:scale-110 transition-transform">
+                      {timeLeft.minutes}
+                    </span>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      Order Date & Time *
-                    </label>
-                    <input
-                      type="datetime-local"
-                      required
-                      value={dateTime}
-                      onChange={(e) => setDateTime(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      Contact Phone No *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder=""
-                      value={contactNo}
-                      onChange={(e) => setContactNo(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#A86450] font-bold mt-4 block">Minutes</span>
                 </div>
+              </div>
 
-                {/* 3. FLAVORS AND QUANTITY SELECTORS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      Choose Cake Flavor *
-                    </label>
-                    <select
-                      required
-                      value={flavor}
-                      onChange={(e) => setFlavor(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 bg-white"
-                    >
-                      <option value="">-- Choose flavor --</option>
-                      {flavors.map(f => (
-                        <option key={f.id} value={f.id}>{f.name}</option>
-                      ))}
-                    </select>
+              {/* SECONDS DIAL */}
+              <div className="bg-white/75 backdrop-blur-md rounded-3xl p-5 border border-[#E5A995]/25 shadow-lg relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FFF7F4] to-transparent opacity-60" />
+                <div className="relative flex flex-col items-center">
+                  <svg className="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="#FFF0EB" strokeWidth="4" fill="transparent" />
+                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="6" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={(2 * Math.PI * 40) * (1 - timeLeft.seconds / 60)} strokeLinecap="round" fill="transparent" />
+                  </svg>
+                  <div className="absolute top-[34px] left-1/2 -translate-x-1/2 text-center">
+                    <span className="block font-cinzel text-2xl md:text-3xl font-extrabold text-[#D4AF37] tracking-tighter leading-none animate-pulse">
+                      {timeLeft.seconds}
+                    </span>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      Select Quantity / Size *
-                    </label>
-                    <select
-                      required
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 bg-white"
-                    >
-                      {QUANTITIES.map(q => (
-                        <option key={q.id} value={q.id}>{q.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#A86450] font-bold mt-4 block">Seconds</span>
                 </div>
+              </div>
 
-                {quantity === 'custom' && (
-                  <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 animate-fadeIn">
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-                      Custom Size Details *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. enter tier, shape, quantity etc"
-                      value={customQtyDetails}
-                      onChange={(e) => setCustomQtyDetails(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-                )}
-
-                {/* THEME SPECIFIC BLOCK WITH REFERENCE PHOTO UPLOAD */}
-                {orderType === 'Theme' && (
-                  <div className="bg-pink-50/40 p-5 rounded-2xl border border-pink-100 space-y-4 animate-fadeIn">
-                    <div>
-                      <label className="block text-xs font-bold text-pink-700 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        Theme Design Specifications *
-                      </label>
-                      <textarea
-                        rows="3"
-                        required
-                        placeholder="Specify design, topper specifications, reference sketches, or theme guidelines..."
-                        value={designDetails}
-                        onChange={(e) => setDesignDetails(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                      ></textarea>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-pink-700 uppercase tracking-wider mb-2">
-                        Attached Design Reference Image
-                      </label>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                        <div className="md:col-span-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={handlePhotoUpload}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isCompilingImage}
-                            className="w-full py-4 border-2 border-dashed border-pink-200 hover:border-pink-400 bg-white text-pink-600 font-medium text-xs rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all disabled:opacity-50"
-                          >
-                            <Upload className="w-5 h-5 text-pink-400" />
-                            {isCompilingImage ? "Scaling & Compressing File..." : "Attach Image"}
-                          </button>
-                        </div>
-
-                        {/* MINI UPLOAD COMPONENT PREVIEW */}
-                        <div className="flex justify-center">
-                          {referenceImage ? (
-                            <div className="relative group rounded-xl overflow-hidden border border-pink-200 w-24 h-24 bg-slate-50 shadow-sm">
-                              <img src={referenceImage} alt="Reference Preview" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => setReferenceImage(null)}
-                                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="border border-dashed border-slate-200 w-24 h-24 rounded-xl flex flex-col items-center justify-center text-slate-300 text-[10px]">
-                              <Upload className="w-5 h-5 mb-1" />
-                              No Image
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. WISHES / MESSAGE ON CAKE */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-slate-400" />
-                    Wishes Written on Cake (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder='e.g., "Happy 10th Birthday Olive!"'
-                    value={wishes}
-                    onChange={(e) => setWishes(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                  />
-                </div>
-
-                {/* 5. FINANCES */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <IndianRupee className="w-3.5 h-3.5 text-slate-400" />
-                      Total Amount (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      step="0.01"
-                      placeholder="0.00"
-                      value={totalAmount}
-                      onChange={(e) =>
-                        setTotalAmount(e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <IndianRupee className="w-3.5 h-3.5 text-slate-400" />
-                      Advance Paid (₹)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={advanceAmount}
-                      onChange={(e) => setAdvanceAmount(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-                  {(totalAmount !== '' && advanceAmount !== '') && (
-                    <div className="p-4 bg-slate-50 rounded-lg">
-                      {balanceAmount > 0 ? (
-                        <p className="text-red-600 font-bold">Balance Due: ₹{balanceAmount.toFixed(0)}</p>
-                      ) : (
-                        <p className="text-emerald-600 font-bold">Full amount paid!</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-55"
-                >
-                  <Cake className="w-5 h-5" />
-                  {isSubmitting ? 'Saving...' : 'Submit Cake Order'}
-                </button>
-
-              </form>
             </div>
-          </div>
-        )}
 
-        {/* VIEW 2: KITCHEN TELEMETRY DASHBOARD */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-8 animate-fadeIn">
+            {/* Reusable Gradient Defs for SVG Dials */}
+            <svg className="w-0 h-0 absolute pointer-events-none">
+              <defs>
+                <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#E5A995" />
+                  <stop offset="50%" stopColor="#D4AF37" />
+                  <stop offset="100%" stopColor="#8E4A37" />
+                </linearGradient>
+              </defs>
+            </svg>
 
-            {!isAdmin ? (
-              <div className="max-w-md mx-auto my-12 bg-white rounded-3xl shadow-xl border border-rose-100 p-8 text-center">
-                <div className="w-16 h-16 bg-rose-50 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
-                  <Lock className="w-8 h-8" />
+            {/* Progress Milestone Line */}
+            <div className="max-w-lg mx-auto bg-white/50 border border-[#E5A995]/20 rounded-2xl p-4 shadow-inner">
+              <div className="flex justify-between items-center text-[10px] font-bold text-[#A86450] font-cinzel mb-2 px-1">
+                <span>TODAY (JUNE 2026)</span>
+                <span className={countdownTarget === 'engagement' ? 'text-[#D4AF37]' : ''}>ENGAGEMENT (JULY 11)</span>
+                <span className={countdownTarget === 'wedding' ? 'text-[#D4AF37]' : ''}>MATRIMONY (JULY 16)</span>
+              </div>
+              <div className="w-full bg-gray-200/80 rounded-full h-2.5 overflow-hidden relative">
+                <div 
+                  className="bg-gradient-to-r from-[#E5A995] via-[#D4AF37] to-[#8E4A37] h-full rounded-full transition-all duration-[1500ms]"
+                  style={{ 
+                    width: countdownTarget === 'engagement' ? '80%' : '98%' 
+                  }}
+                />
+                <div className="absolute top-1/2 left-[80%] -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#D4AF37] shadow-md flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A995] animate-ping" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800">Admin Authentication Required</h3>
-                <p className="text-sm text-slate-400 mt-2 mb-6">
-                  Only authorized Users can view live Dashboard.
-                </p>
+                <div className="absolute top-1/2 left-[98%] -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#8E4A37] shadow-md flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8E4A37] animate-ping" />
+                </div>
+              </div>
+            </div>
 
-                <form onSubmit={handleAdminVerify} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-left flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-slate-400" />
-                      Enter Secure Passcode
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="password"
-                      value={passcodeInput}
-                      onChange={(e) => setPasscodeInput(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 text-center tracking-widest text-lg font-bold focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
+          </div>
+        </section>
+
+        {/* GALLERY SECTION */}
+        
+
+        {/* CEREMONIES SECTION */}
+        <section id="ceremonies-section" className="py-16 px-4 max-w-4xl mx-auto z-30 relative scroll-mt-6">
+          <div className="text-center mb-10">
+            <h3 className="font-playfair text-3xl md:text-4xl font-bold text-[#5A4540] mb-2">
+              The Ceremonies
+            </h3>
+            <div className="w-16 h-[1.5px] bg-[#D4AF37] mx-auto mt-4" />
+          </div>
+
+          <div className="flex justify-center gap-3 mb-10">
+            <button 
+              onClick={() => setActiveTab('engagement')}
+              className={`px-5 py-3 rounded-full font-cinzel text-[11px] font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'engagement' ? 'bg-[#E5A995] text-white shadow-md scale-105' : 'bg-white border border-[#E5A995]/30 text-[#A86450] hover:bg-[#FFF2EC]'}`}
+            >
+              Engagement (July 11th)
+            </button>
+            <button 
+              onClick={() => setActiveTab('wedding')}
+              className={`px-5 py-3 rounded-full font-cinzel text-[11px] font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'wedding' ? 'bg-[#E5A995] text-white shadow-md scale-105' : 'bg-white border border-[#E5A995]/30 text-[#A86450] hover:bg-[#FFF2EC]'}`}
+            >
+              Wedding (July 16th)
+            </button>
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.15)] border border-[#E5A995]/25 p-6 md:p-12 relative overflow-hidden transition-all duration-500">
+            
+            {activeTab === 'engagement' ? (
+              <div className="space-y-6 transition-opacity duration-300">
+                <div className="text-center">
+                  <h4 className="font-pinyon text-5xl text-[#A86450]">Engagement</h4>
+                  <div className="w-12 h-[1px] bg-[#E5A995]/40 mx-auto mt-3" />
+                </div>
+
+                <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
+                  <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Bride's Parents</p>
+                  <p className="text-base font-bold text-[#5A4540] font-playfair">
+                    Mr. K. A. Babukutty (Late) & Mrs. Luciamma Joseph
+                  </p>
+                  <p className="text-xs text-[#A86450] italic">
+                    Kadamthodu(H), Nalukody, Changanacherry
+                  </p>
+                </div>
+
+                <div className="text-center py-4 bg-gradient-to-r from-transparent via-[#FFF7F4] to-transparent rounded-xl">
+                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
+                    ANEY K JOSEPH
+                  </h3>
+                  <p className="font-vibes text-3xl text-[#E5A995] my-1">&</p>
+                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
+                    Adv. JOSEPH STEPHEN
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E5A995]/20 max-w-2xl mx-auto">
+                  <div className="flex items-center gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
+                    <div className="w-12 h-12 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Scheduled Time</p>
+                      <p className="font-playfair text-base font-bold text-[#5A4540]">12:00 PM</p>
+                      <p className="text-xs text-gray-400 font-semibold">Saturday, July 11th, 2026</p>
+                    </div>
                   </div>
 
-                  {passcodeError && (
-                    <p className="text-xs text-rose-500 font-semibold flex items-center justify-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {passcodeError}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
+                    <div className="w-12 h-12 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    </div>
+                    <div>
+                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Venue</p>
+                      <p className="font-playfair text-base font-bold text-[#5A4540]">St. Thomas Church</p>
+                      <p className="text-xs text-gray-400 font-semibold">Nalukody, Changanacherry</p>
+                    </div>
+                  </div>
+                </div>
 
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                <div className="pt-6 text-center">
+                  <p className="text-xs text-[#8E4A37] font-semibold italic mb-3">Followed by Reception at Parish Hall at 12 pm</p>
+                  <a 
+                    href="https://maps.google.com/?q=St.+Thomas+Church+Nalukody" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-cinzel text-[10px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-colors shadow-sm"
                   >
-                    <Unlock className="w-4 h-4" />
-                    Unlock Dashboard
-                  </button>
-                </form>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Navigate to Engagement Venue
+                  </a>
+                </div>
               </div>
             ) : (
+              <div className="space-y-6 transition-opacity duration-300">
+                <div className="text-center">
+                  <h4 className="font-pinyon text-5xl text-[#A86450]">Wedding Ceremony</h4>
+                  <div className="w-12 h-[1px] bg-[#E5A995]/40 mx-auto mt-3" />
+                </div>
 
-              // ACTIVE METRIC METALS
-              <div className="space-y-8">
+                <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
+                  <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Groom's Parents</p>
+                  <p className="text-base font-bold text-[#5A4540] font-playfair">
+                    Mr. Stephen Joseph & Mrs. Rasin Stephen
+                  </p>
+                  <p className="text-xs text-[#A86450] italic">
+                    Thengaparambil(H), Kumarakom, Kottayam
+                  </p>
+                </div>
 
-                <div className="bg-white/80 backdrop-blur rounded-3xl border border-rose-100 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                      <LayoutDashboard className="w-6 h-6 text-pink-500" />
-                      Orders Dashboard
-                    </h2>
-                    <p className="text-xs text-slate-400">Viewing schedule summary logs.</p>
+                <div className="text-center py-4 bg-gradient-to-r from-transparent via-[#FFF7F4] to-transparent rounded-xl">
+                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
+                    ANEY K JOSEPH
+                  </h3>
+                  <p className="font-vibes text-3xl text-[#E5A995] my-1">&</p>
+                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
+                    Adv. JOSEPH STEPHEN
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E5A995]/20 max-w-2xl mx-auto">
+                  <div className="flex items-start gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
+                    <div className="w-11 h-11 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20 mt-1">
+                      <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div>
+                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Wedding Date & Time</p>
+                      <p className="font-playfair text-base font-bold text-[#5A4540]">Thursday, July 16, 2026</p>
+                      <p className="font-playfair text-sm font-semibold text-[#D4AF37]">03:30 PM</p>
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-4 items-end">
-                    {/* Interactive Date Selector Container */}
-                    <div className="bg-pink-50/50 border border-pink-100/80 px-4 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-sm">
-                      <span className="text-[10px] text-pink-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Select Delivery Date
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="date"
-                          value={filterDate}
-                          onChange={(e) => setFilterDate(e.target.value)}
-                          className="px-3 py-1 bg-white border border-rose-200 text-slate-700 text-xs font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-                        />
-                        {/* Only show "Today" shortcut if we aren't currently viewing today */}
-                        {filterDate !== new Date().toLocaleDateString('en-CA') && (
-                          <button
-                            type="button"
-                            onClick={handleResetToToday}
-                            className="bg-pink-100 hover:bg-pink-200 text-pink-700 text-[10px] font-bold px-2 py-1 rounded-lg transition-colors"
-                          >
-                            Today
-                          </button>
-                        )}
-                      </div>
+                  <div className="flex items-start gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
+                    <div className="w-11 h-11 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20 mt-1">
+                      <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     </div>
-
-                    {/* Metric Boxes */}
-                    <div className="bg-rose-100/50 border border-rose-100/80 px-4 py-2.5 rounded-2xl text-center min-w-[100px]">
-                      <span className="block text-[10px] text-rose-500 font-bold uppercase tracking-wider">Target Date Orders</span>
-                      <span className="text-2xl font-black text-rose-600">{analytics.selectedDateCount}</span>
-                    </div>
-                    <div className="bg-amber-100/50 border border-amber-100/80 px-4 py-2.5 rounded-2xl text-center min-w-[100px]">
-                      <span className="block text-[10px] text-amber-600 font-bold uppercase tracking-wider font-semibold">All-Time Orders</span>
-                      <span className="text-2xl font-black text-amber-700">{analytics.totalAllTimeOrders}</span>
+                    <div>
+                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Venue</p>
+                      <p className="font-playfair text-base font-bold text-[#5A4540]">Nava Nazareth Church</p>
+                      <p className="text-xs text-[#A86450] font-semibold">Kumarakom, Kottayam</p>
                     </div>
                   </div>
                 </div>
 
-
-                {/* PREP SCHEDULE TABLE */}
-                  <div className="bg-white rounded-3xl border border-rose-100/60 shadow-lg overflow-hidden">
-                    <div className="p-6 bg-slate-50/60 border-b border-rose-100/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div>
-                        <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                          <Clock className="w-5 h-5 text-pink-500" />
-                          Scheduled Cakes for {new Date(filterDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </h3>
-                      </div>
-                    </div>
-
-                    {analytics.selectedDateCount === 0 ? (
-                      <div className="py-16 text-center text-slate-400 text-sm flex flex-col justify-center items-center gap-2">
-                        <span>No cake orders scheduled for {filterDate}.</span>
-                        <button
-                          onClick={handleResetToToday}
-                          className="text-pink-600 font-bold hover:underline text-xs"
-                        >
-                          Reset back to today
-                        </button>
-                      </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-slate-50/30 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                            <th className="py-4 px-6">Due Time</th>
-                            <th className="py-4 px-6">Cake details</th>
-                            <th className="py-4 px-6">Writing</th>
-                            <th className="py-4 px-6">Customer Name</th>
-                            <th className="py-4 px-6">Contact Phone</th>
-                            <th className="py-4 px-6 text-right">Total</th>
-                            <th className="py-4 px-6 text-right">Amount (Paid / Due)</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {analytics.todayOrders.map((order, i) => {
-                            const flavorName = flavors.find(f => f.id === order.flavor)?.name || order.flavor;
-                            const qtyLabel = QUANTITIES.find(q => q.id === order.quantity)?.name.split(' (')[0] || order.quantity;
-
-                            const [datePart, timePart] = order.date_time.split('T');
-                            const [h24, m] = timePart.split(':');
-
-                            const h = parseInt(h24, 10);
-                            const ampm = h >= 12 ? 'PM' : 'AM';
-                            const h12 = h % 12 || 12;
-
-                            const orderTime = `${h12.toString().padStart(2, '0')}:${m} ${ampm}`;
-
-                            return (
-                              <tr key={order.id || i} className="hover:bg-slate-50/70 transition-colors text-sm">
-
-                                <td className="py-4 px-6 font-bold text-pink-600 whitespace-nowrap">
-                                  <span className="inline-flex items-center gap-1.5 bg-pink-50 px-2.5 py-1 rounded-lg">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    {orderTime}
-                                  </span>
-                                </td>
-
-                                <td className="py-4 px-6">
-                                  <div>
-                                    <div className="font-semibold text-slate-800 flex items-center gap-1.5">
-                                      {flavorName}
-                                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${order.order_type === 'Theme'
-                                          ? 'bg-amber-100 text-amber-800'
-                                          : 'bg-indigo-100 text-indigo-800'
-                                        }`}>
-                                        {order.order_type}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs text-slate-400 mt-0.5 capitalize">
-                                      Size: {qtyLabel} {order.custom_qty_details ? `(${order.custom_qty_details})` : ''}
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td className="py-4 px-6 max-w-sm">
-                                  <div className="space-y-1.5">
-                                    {order.wishes && (
-                                      <div className="text-xs text-slate-700 bg-amber-50 border border-amber-100/50 px-2.5 py-1.5 rounded-lg">
-                                        <span className="font-semibold text-amber-800 text-[10px] block uppercase">Wishes on Cake:</span>
-                                        "{order.wishes}"
-                                      </div>
-                                    )}
-                                    {order.order_type === 'Theme' && (
-                                      <div className="text-xs text-slate-500 italic bg-rose-50/30 border border-rose-100/50 px-2.5 py-1.5 rounded-lg flex flex-col md:flex-row gap-3 items-start justify-between">
-                                        <div>
-                                          <span className="font-semibold text-pink-700 text-[10px] not-italic block uppercase">Theme Directives:</span>
-                                          {order.design_details || "No specifications provided"}
-                                        </div>
-
-                                        {/* DATABASE IMAGE MINI PREVIEW IN PREP PIPELINE */}
-                                        {order.image_data && (
-                                          <button
-                                            type="button"
-                                            onClick={() => setLightboxImage(order.image_data)}
-                                            className="relative flex-shrink-0 group w-12 h-12 rounded-lg overflow-hidden border border-rose-200 shadow-sm"
-                                          >
-                                            <img src={order.image_data} alt="Ref photo" className="w-full h-full object-cover" />
-                                            <span className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center text-[8px] text-white font-bold uppercase">View</span>
-                                          </button>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </td>
-
-                                <td className="py-4 px-6 whitespace-nowrap">
-                                  <div href={`tel:${order.customer_name}`} className="text-slate-600 hover:text-pink-600 font-medium inline-flex items-center gap-1 text-xs">
-                                    <User2Icon className="w-3 h-3 text-slate-400" />
-                                    {order.customer_name}
-                                  </div>
-                                </td>
-
-                                <td className="py-4 px-6 whitespace-nowrap">
-                                  <a href={`tel:${order.contact_no}`} className="text-slate-600 hover:text-pink-600 font-medium inline-flex items-center gap-1 text-xs">
-                                    <Phone className="w-3 h-3 text-slate-400" />
-                                    {order.contact_no}
-                                  </a>
-                                </td>
-                                <td className="py-4 px-6 text-right whitespace-nowrap">
-                                  <div className="font-mono text-xs">
-                                    ₹{Number(order.total_amount).toFixed(2)}
-
-                                  </div>
-                                </td>
-
-                                <td className="py-4 px-6 text-right whitespace-nowrap">
-                                  <div className="font-mono text-xs">
-                                    <div className="text-emerald-600 font-semibold">Adv: ₹{Number(order.advance_amount).toFixed(2)}</div>
-                                    <div className="text-slate-400">Due: ₹{Number(order.balance_amount).toFixed(2)}</div>
-                                  </div>
-                                </td>
-
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
-                  {/* PORTION & SIZE GROUPED BREAKDOWN BY ACTIVE FLAVOR TODAY */}
-                  <div className="bg-white p-6 sm:p-8 rounded-3xl border border-rose-100/60 shadow-md">
-                    <div className="flex items-center gap-2 mb-6 border-b border-rose-50 pb-3">
-                      <BarChart3 className="w-5 h-5 text-amber-500" />
-                      <h3 className="font-bold text-slate-800 text-lg">Today's Orders & Size Breakdown per Flavor</h3>
-                    </div>
-
-                    {analytics.todayCount === 0 ? (
-                      <div className="py-12 text-center text-slate-400 text-sm">
-                        No orders registered for today ({new Date().toLocaleDateString('en-CA')}).
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {analytics.todaySummaryData.map((item) => (
-                          <div key={item.id} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-slate-800 text-sm">{item.name}</span>
-                              <span className="bg-pink-100 text-pink-700 text-xs font-extrabold px-2 py-0.5 rounded-full">
-                                {item.sizes.total} order(s)
-                              </span>
-                            </div>
-
-                            {/* Size badge pills */}
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {item.sizes.medium > 0 && (
-                                <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-indigo-100">
-                                  Medium: {item.sizes.medium}
-                                </span>
-                              )}
-                              {item.sizes.large > 0 && (
-                                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-emerald-100">
-                                  Large: {item.sizes.large}
-                                </span>
-                              )}
-                              {item.sizes.custom > 0 && (
-                                <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-amber-100">
-                                  Custom: {item.sizes.custom}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                <div className="pt-6 border-t border-[#E5A995]/15 text-center space-y-4">
+                  <p className="text-xs text-[#8E4A37] font-semibold italic">Followed by Reception starting from 07:00 PM onwards</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <a 
+                      href="https://maps.google.com/?q=Nava+Nazareth+Church+Kumarakom" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-cinzel text-[10px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                      Get Directions
+                    </a>
                   </div>
-
                 </div>
-
               </div>
             )}
-
           </div>
-        )}
+        </section>
 
-        {/* VIEW 3: MANAGE FLAVORS (ADMIN ONLY) */}
-        {activeTab === 'manage-flavors' && isAdmin && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fadeIn">
 
-            {/* ADD FLAVOR FORM */}
-            <div className="lg:col-span-4 bg-white rounded-3xl shadow-xl border border-rose-100 p-6">
-              <div className="border-b border-rose-100 pb-3 mb-5">
-                <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                  <PlusCircle className="w-5 h-5 text-pink-500" />
-                  Add New Flavor
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">Define metadata and standard pricing columns.</p>
-              </div>
+        {/* GUESTBOOK SECTION */}
+        <section className="py-16 px-4 max-w-4xl mx-auto z-30 relative">
+          <div className="text-center mb-10">
+            <h3 className="font-playfair text-3xl font-bold text-[#5A4540] mb-2">Blessings Guestbook</h3>
+            <p className="font-cinzel text-[10px] tracking-[0.25em] text-[#E5A995] uppercase font-bold">Warm sentiments from our loved ones</p>
+            <div className="w-16 h-[1.5px] bg-[#D4AF37] mx-auto mt-4" />
+          </div>
 
-              <form onSubmit={handleAddFlavor} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {wishesList.map((w, i) => (
+              <div 
+                key={i}
+                className="p-6 bg-white border border-[#E5A995]/15 rounded-3xl relative shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+              >
+                <span className="text-4xl text-[#E5A995]/15 absolute top-3 right-4 font-serif">“</span>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Flavor Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Pistachio Cardamom"
-                    value={newFlavorName}
-                    onChange={handleFlavorNameChange}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                  />
+                  <h5 className="font-cinzel text-xs font-bold text-[#D4AF37] mb-0.5">{w.name}</h5>
+                  <p className="text-[9px] text-[#A86450] mb-3">{w.date}</p>
+                  <p className="text-xs text-[#5A4540] italic leading-relaxed">"{w.text}"</p>
                 </div>
+              </div>
+            ))}
+          </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <IndianRupee className="w-3 h-3" />
-                      Medium Price (₹)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="e.g. 550"
-                      value={newFlavorPriceMedium}
-                      onChange={(e) => setNewFlavorPriceMedium(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <IndianRupee className="w-3 h-3" />
-                      Large Price (₹)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="e.g. 1000"
-                      value={newFlavorPriceLarge}
-                      onChange={(e) => setNewFlavorPriceLarge(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-500 focus:ring focus:ring-pink-500/20 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <button
+          <form onSubmit={handleWishSubmit} className="bg-[#FFF8F5]/80 p-5 rounded-2xl border border-[#E5A995]/20 flex flex-col md:flex-row gap-4 items-end">
+            <div className="w-full md:w-1/3 text-left">
+              <label className="block text-[9px] font-cinzel uppercase tracking-widest text-[#A86450] mb-1 font-bold">Your Name</label>
+              <input 
+                type="text" 
+                required
+                placeholder="e.g. Thomas & family"
+                value={newWish.name}
+                onChange={(e) => setNewWish({ ...newWish, name: e.target.value })}
+                className="w-full bg-white border border-[#E5A995]/25 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#E5A995] text-[#5A4540]"
+              />
+            </div>
+            <div className="w-full md:w-2/3 text-left">
+              <label className="block text-[9px] font-cinzel uppercase tracking-widest text-[#A86450] mb-1 font-bold">Your Blessing Wish</label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Type a beautiful congratulate wish for Aney & Joseph..."
+                  value={newWish.text}
+                  onChange={(e) => setNewWish({ ...newWish, text: e.target.value })}
+                  className="w-full bg-white border border-[#E5A995]/25 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#E5A995] text-[#5A4540]"
+                />
+                <button 
                   type="submit"
-                  disabled={isSavingFlavor}
-                  className="w-full mt-2 py-3 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl font-cinzel text-[9px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-all whitespace-nowrap"
                 >
-                  <Layers className="w-4 h-4" />
-                  {isSavingFlavor ? 'Saving...' : 'Save Flavor'}
+                  Post Wish
                 </button>
-              </form>
-            </div>
-
-            {/* FLAVORS LIST TABLE */}
-            <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl border border-rose-100 p-6">
-              <div className="border-b border-rose-100 pb-3 mb-5 flex justify-between items-center">
-                <div>
-                  <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <Tag className="w-5 h-5 text-pink-500" />
-                    Available Flavors List ({flavors.length})
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">These directly populate the placing order drop-down menu.</p>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                      <th className="py-3 px-4">Flavor Name</th>
-                      <th className="py-3 px-4">Slug ID Key</th>
-                      <th className="py-3 px-4 text-right">Medium Price</th>
-                      <th className="py-3 px-4 text-right">Large Price</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {flavors.map((flv) => (
-                      <tr key={flv.id} className="hover:bg-slate-50/70 transition-colors text-sm">
-                        <td className="py-3.5 px-4 font-semibold text-slate-800">
-                          {flv.name}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <code className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-mono">
-                            {flv.id}
-                          </code>
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-semibold text-slate-700">
-                          {flv.price_medium ? `₹${flv.price_medium}` : '—'}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-semibold text-slate-700">
-                          {flv.price_large ? `₹${flv.price_large}` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                    {flavors.length === 0 && (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-slate-400 text-sm">
-                          No flavors added yet. Use the form on the left to add flavors!
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
               </div>
             </div>
+          </form>
+        </section>
 
+        {/* FOOTER */}
+        <footer className="py-16 text-center relative z-30 border-t border-[#E5A995]/15 bg-white/95">
+          <div className="max-w-xl mx-auto px-6 space-y-4">
+            <div className="w-12 h-[1px] bg-[#D4AF37]/40 mx-auto my-4" />
+            <p className="text-[10px] text-[#A86450] tracking-[0.2em] uppercase font-bold">Aney💖Joseph @ July 2026</p>
+            <p className="text-[9px] text-[#A86450] font-bold font-montserrat"></p>
           </div>
-        )}
+        </footer>
 
-      </main>
-
-      <footer className="mt-16 border-t border-rose-100/60 bg-white/50 py-8 text-center text-xs text-slate-400">
-        <p className="flex items-center justify-center gap-1">
-          Made with <Heart className="w-3 h-3 text-pink-500 fill-pink-500" /> for Olive Cakes © 2026.
-        </p>
-      </footer>
-
+      </div>
     </div>
   );
-}  
+}
