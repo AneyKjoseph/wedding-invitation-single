@@ -461,16 +461,12 @@ export default function App() {
             </svg>
           </div>
 
-          <div className="absolute right-25 top-20 -translate-y-1 text-center rotate-180 flex flex-col items-center" style={{ writingMode: 'vertical-rl' }}>
-            <span className="font-cinzel text-xl md:text-3xl font-bold tracking-[0.5em] text-[#A86450] opacity-90">
-              YOU ARE INVITED
-            </span>
-          </div>
+        
         </div>
 
         {/* GLOWING WAX SEAL BUTTON */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col items-center">
-          <button 
+          <button
             onClick={handleOpenInvitation}
             className={`w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#FFF3E3] to-[#B89047] p-[4px] shadow-[0_20px_50px_rgba(229,169,149,0.5)] animate-gentle-glow transition-all duration-700 hover:scale-110 active:scale-95 flex items-center justify-center ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
           >
@@ -478,13 +474,14 @@ export default function App() {
               <div className="absolute inset-2 border-2 border-[#D4AF37]/60 rounded-full" />
               <div className="absolute inset-3 border border-dashed border-[#D4AF37]/30 rounded-full" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,210,196,0.45)_0%,transparent_75%)] pointer-events-none" />
-              
+
               <span className="font-pinyon text-5xl md:text-6xl text-[#8E4A37] font-bold select-none tracking-tight"><img src={jaImage}></img></span>
-              <span className="font-cinzel text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-[#8E4A37] font-bold mt-2 select-none animate-pulse">Open Invitation</span>
             </div>
+
           </button>
-          
-        
+          <span className="font-cinzel text-[12px] md:text-[9px] uppercase tracking-[0.3em] text-[#8E4A37] font-bold mt-2 select-none animate-pulse">Click here to Open Invitation</span>
+
+
         </div>
 
         {/* RIGHT FLAP */}
@@ -522,8 +519,8 @@ export default function App() {
         </div>
 
         {/* SECTION 1: COVER ILLUSTRATION & INTERACTIVE CALENDAR */}
-        <section className="relative pt-12 pb-8 px-4 flex flex-col items-center justify-center text-center">
-          <div className="max-w-4xl w-full bg-[#FFFAF7] rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.25)] border border-[#E5A995]/20 p-5 md:p-12 relative overflow-hidden">           
+        <section className="relative pt-4 pb-2 px-4 flex flex-col items-center justify-center text-center">
+          <div className="max-w-4xl w-full bg-[transparent] rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.25)] border border-[#E5A995]/20 p-5 md:p-4 relative overflow-hidden">           
             <div className="absolute top-0 left-0 w-32 h-32 opacity-40 pointer-events-none bg-gradient-to-br from-[#FBD2C4] to-transparent rounded-full blur-3xl" />
             <div className="absolute top-0 right-0 w-32 h-32 opacity-40 pointer-events-none bg-gradient-to-bl from-[#FBD2C4] to-transparent rounded-full blur-3xl" />
 
@@ -534,7 +531,7 @@ export default function App() {
             </div>
 
             {/* Live Interactive Calendar Grid */}
-            <div className="max-w-xs mx-auto mb-8 bg-[#FFF2EC]/90 rounded-3xl p-5 border border-[#E5A995]/30 shadow-inner">
+            <div className="max-w-xs mx-auto mb-8 bg-[#FFF2EC]/90 rounded-3xl p-3 border border-[#E5A995]/30 shadow-inner">
               <div className="grid grid-cols-7 gap-1 text-xs font-bold text-[#8E4A37] border-b border-[#E5A995]/30 pb-2 mb-2">
                 <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
               </div>
@@ -597,8 +594,6 @@ export default function App() {
         {/* COUNTDOWN SECTION */}
         <section className="py-16 bg-gradient-to-b from-[#FFFAF7] via-[#FFF2EC] to-[#FFFAF7] border-t border-b border-[#E5A995]/30 shadow-md relative z-30 overflow-hidden">
           <div className="absolute top-1/2 left-1/4 w-72 h-72 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,#FCD9CC_0%,transparent_70%)] blur-3xl -translate-y-1/2" />
-          <div className="absolute top-1/2 right-1/4 w-72 h-72 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,#D4AF37_0%,transparent_70%)] blur-3xl -translate-y-1/2" />
-
           <div className="max-w-4xl mx-auto text-center px-4 relative">
             <span className="font-cinzel text-[10px] md:text-xs tracking-[0.4em] uppercase text-[#A86450] font-bold block mb-2">
               THE COUNTDOWN TO FOREVER
@@ -606,9 +601,6 @@ export default function App() {
             <h3 className="font-playfair text-3xl font-semibold text-[#5A4540] mb-3">
               Time until we say "I Do"
             </h3>
-            <p className="text-xs text-[#A86450] italic max-w-md mx-auto mb-8 leading-relaxed">
-              Every second brings us closer to a lifetime of happiness. Select a celebration milestone to watch the stars realign:
-            </p>
 
             {/* Premium Target Toggle buttons */}
             <div className="inline-flex p-1.5 bg-white/90 border border-[#E5A995]/40 rounded-full shadow-[0_10px_25px_rgba(229,169,149,0.15)] mb-10 transition-all hover:border-[#D4AF37]/50">
@@ -634,8 +626,7 @@ export default function App() {
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#FFF7F4] to-transparent opacity-60" />
                 <div className="relative flex flex-col items-center">
                   <svg className="w-24 h-24 transform -rotate-90">
-                    <circle cx="48" cy="48" r="40" stroke="#FFF0EB" strokeWidth="4" fill="transparent" />
-                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="6" strokeDasharray={2 * Math.PI * 40} strokeDashoffset={(2 * Math.PI * 40) * (1 - Math.min(timeLeft.days, 365) / 365)} strokeLinecap="round" fill="transparent" className="transition-all duration-1000" />
+                    <circle cx="48" cy="48" r="40" stroke="url(#goldGradient)" strokeWidth="4" fill="transparent" />
                   </svg>
                   <div className="absolute top-[34px] left-1/2 -translate-x-1/2 text-center">
                     <span className="block font-cinzel text-2xl md:text-3xl font-extrabold text-[#8E4A37] tracking-tighter leading-none group-hover:scale-110 transition-transform">
@@ -711,11 +702,11 @@ export default function App() {
             </svg>
 
             {/* Progress Milestone Line */}
-            <div className="max-w-lg mx-auto bg-white/50 border border-[#E5A995]/20 rounded-2xl p-4 shadow-inner">
+            <div className="max-w-lg mx-auto bg-white/50 border border-[#E5A995]/20 rounded-2xl p-3 shadow-inner">
               <div className="flex justify-between items-center text-[10px] font-bold text-[#A86450] font-cinzel mb-2 px-1">
-                <span>TODAY (JUNE 2026)</span>
+                <span>Today</span>
                 <span className={countdownTarget === 'engagement' ? 'text-[#D4AF37]' : ''}>ENGAGEMENT (JULY 11)</span>
-                <span className={countdownTarget === 'wedding' ? 'text-[#D4AF37]' : ''}>MATRIMONY (JULY 16)</span>
+                <span className={countdownTarget === 'wedding' ? 'text-[#D4AF37]' : ''}>Wedding (JULY 16)</span>
               </div>
               <div className="w-full bg-gray-200/80 rounded-full h-2.5 overflow-hidden relative">
                 <div 
@@ -736,11 +727,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* GALLERY SECTION */}
-        
-
         {/* CEREMONIES SECTION */}
-        <section id="ceremonies-section" className="py-16 px-4 max-w-4xl mx-auto z-30 relative scroll-mt-6">
+        <section id="ceremonies-section" className="py-8 px-2 max-w-4xl mx-auto z-30 relative scroll-mt-6">
           <div className="text-center mb-10">
             <h3 className="font-playfair text-3xl md:text-4xl font-bold text-[#5A4540] mb-2">
               The Ceremonies
@@ -774,7 +762,7 @@ export default function App() {
 
                 <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
                   <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Bride's Parents</p>
-                  <p className="text-base font-bold text-[#5A4540] font-playfair">
+                  <p className="text-base font-bold text-[#5A4540] font-cinzel">
                     Mr. K. A. Babukutty (Late) & Mrs. Luciamma Joseph
                   </p>
                   <p className="text-xs text-[#A86450] italic">
@@ -838,7 +826,7 @@ export default function App() {
 
                 <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
                   <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Groom's Parents</p>
-                  <p className="text-base font-bold text-[#5A4540] font-playfair">
+                  <p className="text-base font-bold text-[#5A4540] font-cinzel">
                     Mr. Stephen Joseph & Mrs. Rasin Stephen
                   </p>
                   <p className="text-xs text-[#A86450] italic">
@@ -899,73 +887,6 @@ export default function App() {
           </div>
         </section>
 
-
-        {/* GUESTBOOK SECTION */}
-        <section className="py-16 px-4 max-w-4xl mx-auto z-30 relative">
-          <div className="text-center mb-10">
-            <h3 className="font-playfair text-3xl font-bold text-[#5A4540] mb-2">Blessings Guestbook</h3>
-            <p className="font-cinzel text-[10px] tracking-[0.25em] text-[#E5A995] uppercase font-bold">Warm sentiments from our loved ones</p>
-            <div className="w-16 h-[1.5px] bg-[#D4AF37] mx-auto mt-4" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {wishesList.map((w, i) => (
-              <div 
-                key={i}
-                className="p-6 bg-white border border-[#E5A995]/15 rounded-3xl relative shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
-              >
-                <span className="text-4xl text-[#E5A995]/15 absolute top-3 right-4 font-serif">“</span>
-                <div>
-                  <h5 className="font-cinzel text-xs font-bold text-[#D4AF37] mb-0.5">{w.name}</h5>
-                  <p className="text-[9px] text-[#A86450] mb-3">{w.date}</p>
-                  <p className="text-xs text-[#5A4540] italic leading-relaxed">"{w.text}"</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleWishSubmit} className="bg-[#FFF8F5]/80 p-5 rounded-2xl border border-[#E5A995]/20 flex flex-col md:flex-row gap-4 items-end">
-            <div className="w-full md:w-1/3 text-left">
-              <label className="block text-[9px] font-cinzel uppercase tracking-widest text-[#A86450] mb-1 font-bold">Your Name</label>
-              <input 
-                type="text" 
-                required
-                placeholder="e.g. Thomas & family"
-                value={newWish.name}
-                onChange={(e) => setNewWish({ ...newWish, name: e.target.value })}
-                className="w-full bg-white border border-[#E5A995]/25 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#E5A995] text-[#5A4540]"
-              />
-            </div>
-            <div className="w-full md:w-2/3 text-left">
-              <label className="block text-[9px] font-cinzel uppercase tracking-widest text-[#A86450] mb-1 font-bold">Your Blessing Wish</label>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Type a beautiful congratulate wish for Aney & Joseph..."
-                  value={newWish.text}
-                  onChange={(e) => setNewWish({ ...newWish, text: e.target.value })}
-                  className="w-full bg-white border border-[#E5A995]/25 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#E5A995] text-[#5A4540]"
-                />
-                <button 
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl font-cinzel text-[9px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-all whitespace-nowrap"
-                >
-                  Post Wish
-                </button>
-              </div>
-            </div>
-          </form>
-        </section>
-
-        {/* FOOTER */}
-        <footer className="py-16 text-center relative z-30 border-t border-[#E5A995]/15 bg-white/95">
-          <div className="max-w-xl mx-auto px-6 space-y-4">
-            <div className="w-12 h-[1px] bg-[#D4AF37]/40 mx-auto my-4" />
-            <p className="text-[10px] text-[#A86450] tracking-[0.2em] uppercase font-bold">Aney💖Joseph @ July 2026</p>
-            <p className="text-[9px] text-[#A86450] font-bold font-montserrat"></p>
-          </div>
-        </footer>
 
       </div>
     </div>
