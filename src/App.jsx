@@ -545,6 +545,7 @@ export default function App() {
                   className="relative flex items-center justify-center py-1 cursor-pointer transition-transform hover:scale-125"
                   onClick={() => {
                     setActiveTab('engagement');
+                    setCountdownTarget('engagement');
                     const element = document.getElementById('ceremonies-section');
                     if (element) element.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -561,6 +562,7 @@ export default function App() {
                   className="relative flex items-center justify-center py-1 cursor-pointer transition-transform hover:scale-125"
                   onClick={() => {
                     setActiveTab('wedding');
+                    setCountdownTarget('wedding');
                     const element = document.getElementById('ceremonies-section');
                     if (element) element.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -605,13 +607,20 @@ export default function App() {
             {/* Premium Target Toggle buttons */}
             <div className="inline-flex p-1.5 bg-white/90 border border-[#E5A995]/40 rounded-full shadow-[0_10px_25px_rgba(229,169,149,0.15)] mb-10 transition-all hover:border-[#D4AF37]/50">
               <button
-                onClick={() => setCountdownTarget('engagement')}
+                onClick={() => {
+                  setCountdownTarget('engagement');
+                  setActiveTab('engagement')
+                }}
                 className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'engagement' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
               >
                 💍 To Engagement (July 11)
               </button>
               <button
-                onClick={() => setCountdownTarget('wedding')}
+                onClick={() => {
+                  setCountdownTarget('wedding');
+                  setActiveTab('wedding');
+                }
+                }
                 className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'wedding' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
               >
                 💖To Wedding (July 16)
@@ -729,29 +738,8 @@ export default function App() {
 
         {/* CEREMONIES SECTION */}
         <section id="ceremonies-section" className="py-8 px-2 max-w-4xl mx-auto z-30 relative scroll-mt-6">
-          <div className="text-center mb-10">
-            <h3 className="font-playfair text-3xl md:text-4xl font-bold text-[#5A4540] mb-2">
-              The Ceremonies
-            </h3>
-            <div className="w-16 h-[1.5px] bg-[#D4AF37] mx-auto mt-4" />
-          </div>
-
-          <div className="flex justify-center gap-3 mb-10">
-            <button 
-              onClick={() => setActiveTab('engagement')}
-              className={`px-5 py-3 rounded-full font-cinzel text-[11px] font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'engagement' ? 'bg-[#E5A995] text-white shadow-md scale-105' : 'bg-white border border-[#E5A995]/30 text-[#A86450] hover:bg-[#FFF2EC]'}`}
-            >
-              Engagement (July 11th)
-            </button>
-            <button 
-              onClick={() => setActiveTab('wedding')}
-              className={`px-5 py-3 rounded-full font-cinzel text-[11px] font-bold tracking-widest uppercase transition-all duration-300 ${activeTab === 'wedding' ? 'bg-[#E5A995] text-white shadow-md scale-105' : 'bg-white border border-[#E5A995]/30 text-[#A86450] hover:bg-[#FFF2EC]'}`}
-            >
-              Wedding (July 16th)
-            </button>
-          </div>
-
-          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.15)] border border-[#E5A995]/25 p-6 md:p-12 relative overflow-hidden transition-all duration-500">
+         
+         <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.15)] border border-[#E5A995]/25 p-6 md:p-12 relative overflow-hidden transition-all duration-500">
             
             {activeTab === 'engagement' ? (
               <div className="space-y-6 transition-opacity duration-300">
@@ -787,7 +775,7 @@ export default function App() {
                     </div>
                     <div>
                       <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Scheduled Time</p>
-                      <p className="font-playfair text-base font-bold text-[#5A4540]">12:00 PM</p>
+                      <p className="font-cinzel text-base font-bold text-[#5A4540]">12:00 PM</p>
                       <p className="text-xs text-gray-400 font-semibold">Saturday, July 11th, 2026</p>
                     </div>
                   </div>
@@ -813,7 +801,7 @@ export default function App() {
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-cinzel text-[10px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-colors shadow-sm"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Navigate to Engagement Venue
+                    Get Directions
                   </a>
                 </div>
               </div>
@@ -852,7 +840,7 @@ export default function App() {
                     <div>
                       <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Wedding Date & Time</p>
                       <p className="font-playfair text-base font-bold text-[#5A4540]">Thursday, July 16, 2026</p>
-                      <p className="font-playfair text-sm font-semibold text-[#D4AF37]">03:30 PM</p>
+                      <p className="font-cinzel text-sm font-semibold text-[#D4AF37]">03:30 PM</p>
                     </div>
                   </div>
 
