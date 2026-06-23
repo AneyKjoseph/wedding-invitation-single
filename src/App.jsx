@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import backgroundImage from './assets/image.png'; 
+import image from './assets/image_.png'; 
 import jaImage from './assets/logo.png'; 
 
 
@@ -333,7 +334,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-[#FFFBF9] text-[#5A4540] font-montserrat select-none">
+    <div className="min-h-screen relative overflow-x-hidden bg-whitet text-[#5A4540] font-montserrat select-none">
       
       {/* Absolute Global Overrides & Critical Animations */}
       <style>{`
@@ -446,7 +447,7 @@ export default function App() {
         
         {/* LEFT FLAP */}
         <div 
-          className={`w-1/2 h-full bg-[#FCF6F2] flex items-center justify-end relative overflow-hidden border-r border-[#E5A995]/30 transition-transform duration-[1200ms] ${isOpen ? '-translate-x-full' : 'translate-x-0'}`}
+          className={`w-1/2 h-full bg-[#EBEAE0] flex items-center justify-end relative overflow-hidden border-r border-[#C9CBB8]/30 transition-transform duration-[1200ms] ${isOpen ? '-translate-x-full' : 'translate-x-0'}`}
           style={{ transitionTimingFunction: 'cubic-bezier(0.77, 0, 0.175, 1)' }}
         >
           {/* Detailed Golden Damask Lace SVG Watermark */}
@@ -486,7 +487,7 @@ export default function App() {
 
         {/* RIGHT FLAP */}
         <div 
-          className={`w-1/2 h-full bg-[#FCF6F2] flex items-center justify-start relative overflow-hidden border-l border-[#E5A995]/30 transition-transform duration-[1200ms] ${isOpen ? 'translate-x-full' : 'translate-x-0'}`}
+          className={`w-1/2 h-full bg-[#EBEAE0] flex items-center justify-start relative overflow-hidden border-l border-[#C9CBB8]/30 transition-transform duration-[1200ms] ${isOpen ? 'translate-x-full' : 'translate-x-0'}`}
           style={{ transitionTimingFunction: 'cubic-bezier(0.77, 0, 0.175, 1)' }}
         >
           {/* Symmetric Detailed Golden Damask Lace SVG Watermark */}
@@ -531,7 +532,7 @@ export default function App() {
             </div>
 
             {/* Live Interactive Calendar Grid */}
-            <div className="max-w-xs mx-auto mb-8 bg-[#FFF2EC]/90 rounded-3xl p-3 border border-[#E5A995]/30 shadow-inner">
+            <div className="max-w-xs mx-auto mb-8 bg-[#EBEAE0]/90 rounded-3xl p-3 border border-white/30 shadow-inner">
               <div className="grid grid-cols-7 gap-1 text-xs font-bold text-[#8E4A37] border-b border-[#E5A995]/30 pb-2 mb-2">
                 <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
               </div>
@@ -539,21 +540,7 @@ export default function App() {
                 <span className="text-[#D6C2BD]"></span><span className="text-[#D6C2BD]"></span><span className="text-[#D6C2BD]"></span>
                 <span className="py-1">1</span><span className="py-1">2</span><span className="py-1">3</span><span className="py-1">4</span><span className="py-1">5</span>
                 <span className="py-1">6</span><span className="py-1">7</span><span className="py-1">8</span><span className="py-1">9</span><span className="py-1">10</span>
-                
-                {/* 11th - Engagement Ceremony with Red Pulsing Heart */}
-                <div 
-                  className="relative flex items-center justify-center py-1 cursor-pointer transition-transform hover:scale-125"
-                  onClick={() => {
-                    setActiveTab('engagement');
-                    setCountdownTarget('engagement');
-                    const element = document.getElementById('ceremonies-section');
-                    if (element) element.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  title="Click to view Engagement details!"
-                >
-                  <span className="absolute text-[#C1272D] text-2xl animate-heart-pulse">❤️</span>
-                  <span className="relative z-10 text-white font-bold text-[10px]">11</span>
-                </div>
+                <span className="py-1">11</span>
                 
                 <span className="py-1">12</span><span className="py-1">13</span><span className="py-1">14</span><span className="py-1">15</span>
                 
@@ -579,54 +566,27 @@ export default function App() {
             </div>
 
             {/* Custom SVG Watercolor Couple & Flower Arch Illustration */}
-            <div className="w-full max-w-lg mx-auto relative mt-6 mb-4" >
+            <div className="w-full flex flex-col items-center -mt-20 mb-4" >
               <img 
-                src= {backgroundImage}
+                src= {image}
                 alt="Couple" 
+                className="w-full max-w-[90vw] md:max-w-lg h-auto object-contain"
               />
-              <p className="font-pinyon text-4xl text-[#A86450] mt-1">Aney & Joseph</p>
+              <p className="font-pinyon text-4xl text-[#A86450] mt-1">Joseph & Aney</p>
             </div>
-
-            <p className="text-xs italic text-[#A86450] font-semibold max-w-sm mx-auto">
-              Tip: Tap the calendar hearts (<span className="text-[#C1272D]">❤️</span>) to explore event details below!
-            </p>
           </div>
         </section>
 
         {/* COUNTDOWN SECTION */}
-        <section className="py-16 bg-gradient-to-b from-[#FFFAF7] via-[#FFF2EC] to-[#FFFAF7] border-t border-b border-[#E5A995]/30 shadow-md relative z-30 overflow-hidden">
+        <section className="py-16 bg-gradient-to-b from-white via-white to-white border-t border-b border-[#E5A995]/30 shadow-md relative z-30 overflow-hidden">
           <div className="absolute top-1/2 left-1/4 w-72 h-72 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_center,#FCD9CC_0%,transparent_70%)] blur-3xl -translate-y-1/2" />
           <div className="max-w-4xl mx-auto text-center px-4 relative">
             <span className="font-cinzel text-[10px] md:text-xs tracking-[0.4em] uppercase text-[#A86450] font-bold block mb-2">
-              THE COUNTDOWN TO FOREVER
+              THE COUNTDOWN TO OUR WEDDING
             </span>
             <h3 className="font-playfair text-3xl font-semibold text-[#5A4540] mb-3">
               Time until we say "I Do"
             </h3>
-
-            {/* Premium Target Toggle buttons */}
-            <div className="inline-flex p-1.5 bg-white/90 border border-[#E5A995]/40 rounded-full shadow-[0_10px_25px_rgba(229,169,149,0.15)] mb-10 transition-all hover:border-[#D4AF37]/50">
-              <button
-                onClick={() => {
-                  setCountdownTarget('engagement');
-                  setActiveTab('engagement')
-                }}
-                className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'engagement' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
-              >
-                💍 To Engagement (July 11)
-              </button>
-              <button
-                onClick={() => {
-                  setCountdownTarget('wedding');
-                  setActiveTab('wedding');
-                }
-                }
-                className={`px-5 py-2.5 rounded-full font-cinzel text-[9px] md:text-[10px] font-bold tracking-wider uppercase transition-all duration-300 ${countdownTarget === 'wedding' ? 'bg-[#E5A995] text-white shadow-md' : 'text-[#8E4A37] hover:bg-[#FFF2EC]'}`}
-              >
-                💖To Wedding (July 16)
-              </button>
-            </div>
-
             {/* Glowing Ring-Dial Countdown Design */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto mb-12">
               
@@ -710,126 +670,41 @@ export default function App() {
               </defs>
             </svg>
 
-            {/* Progress Milestone Line */}
-            <div className="max-w-lg mx-auto bg-white/50 border border-[#E5A995]/20 rounded-2xl p-3 shadow-inner">
-              <div className="flex justify-between items-center text-[10px] font-bold text-[#A86450] font-cinzel mb-2 px-1">
-                <span>Today</span>
-                <span className={countdownTarget === 'engagement' ? 'text-[#D4AF37]' : ''}>ENGAGEMENT (JULY 11)</span>
-                <span className={countdownTarget === 'wedding' ? 'text-[#D4AF37]' : ''}>Wedding (JULY 16)</span>
-              </div>
-              <div className="w-full bg-gray-200/80 rounded-full h-2.5 overflow-hidden relative">
-                <div 
-                  className="bg-gradient-to-r from-[#E5A995] via-[#D4AF37] to-[#8E4A37] h-full rounded-full transition-all duration-[1500ms]"
-                  style={{ 
-                    width: countdownTarget === 'engagement' ? '80%' : '98%' 
-                  }}
-                />
-                <div className="absolute top-1/2 left-[80%] -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#D4AF37] shadow-md flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5A995] animate-ping" />
-                </div>
-                <div className="absolute top-1/2 left-[98%] -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#8E4A37] shadow-md flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8E4A37] animate-ping" />
-                </div>
-              </div>
-            </div>
-
           </div>
         </section>
 
         {/* CEREMONIES SECTION */}
         <section id="ceremonies-section" className="py-8 px-2 max-w-4xl mx-auto z-30 relative scroll-mt-6">
          
-         <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(229,169,149,0.15)] border border-[#E5A995]/25 p-6 md:p-12 relative overflow-hidden transition-all duration-500">
-            
-            {activeTab === 'engagement' ? (
+         <div className="shadow-[0_20px_50px_rgba(229,169,149,0.15)] p-6 md:p-12 relative overflow-hidden transition-all duration-500">
               <div className="space-y-6 transition-opacity duration-300">
-                <div className="text-center">
-                  <h4 className="font-pinyon text-5xl text-[#A86450]">Engagement</h4>
-                  <div className="w-12 h-[1px] bg-[#E5A995]/40 mx-auto mt-3" />
-                </div>
-
-                <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
-                  <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Bride's Parents</p>
+                <div className="p-5 rounded-2xl max-w-2xl mx-auto text-center space-y-2">
                   <p className="text-base font-bold text-[#5A4540] font-cinzel">
-                    Mr. K. A. Babukutty (Late) & Mrs. Luciamma Joseph
-                  </p>
-                  <p className="text-xs text-[#A86450] italic">
-                    Kadamthodu(H), Nalukody, Changanacherry
-                  </p>
-                </div>
-
-                <div className="text-center py-4 bg-gradient-to-r from-transparent via-[#FFF7F4] to-transparent rounded-xl">
-                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
-                    ANEY K JOSEPH
-                  </h3>
-                  <p className="font-vibes text-3xl text-[#E5A995] my-1">&</p>
-                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
-                    Adv. JOSEPH STEPHEN
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E5A995]/20 max-w-2xl mx-auto">
-                  <div className="flex items-center gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
-                    <div className="w-12 h-12 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div>
-                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Scheduled Time</p>
-                      <p className="font-cinzel text-base font-bold text-[#5A4540]">12:00 PM</p>
-                      <p className="text-xs text-gray-400 font-semibold">Saturday, July 11th, 2026</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 bg-[#FFFBF9] p-3 rounded-xl border border-[#E5A995]/10">
-                    <div className="w-12 h-12 rounded-full bg-[#FFF5F1] flex items-center justify-center text-[#D4AF37] shrink-0 border border-[#E5A995]/20">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                    </div>
-                    <div>
-                      <p className="font-cinzel text-[9px] uppercase tracking-widest text-[#A86450] font-bold">Venue</p>
-                      <p className="font-playfair text-base font-bold text-[#5A4540]">St. Thomas Church</p>
-                      <p className="text-xs text-gray-400 font-semibold">Nalukody, Changanacherry</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 text-center">
-                  <p className="text-xs text-[#8E4A37] font-semibold italic mb-3">Followed by Reception at Parish Hall at 12 pm</p>
-                  <a 
-                    href="https://maps.google.com/?q=St.+Thomas+Church+Nalukody" 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-cinzel text-[10px] font-bold uppercase tracking-widest text-white bg-[#E5A995] hover:bg-[#D59883] transition-colors shadow-sm"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Get Directions
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6 transition-opacity duration-300">
-                <div className="text-center">
-                  <h4 className="font-pinyon text-5xl text-[#A86450]">Wedding Ceremony</h4>
-                  <div className="w-12 h-[1px] bg-[#E5A995]/40 mx-auto mt-3" />
-                </div>
-
-                <div className="bg-[#FFFDFB] p-5 rounded-2xl border border-[#E5A995]/20 shadow-sm max-w-2xl mx-auto text-center space-y-2">
-                  <p className="font-cinzel text-[10px] uppercase tracking-wider text-[#A86450] font-bold">Groom's Parents</p>
-                  <p className="text-base font-bold text-[#5A4540] font-cinzel">
-                    Mr. Stephen Joseph & Mrs. Rasin Stephen
+                   S/O. Mr. Stephen Joseph & Mrs. Rasin Stephen
                   </p>
                   <p className="text-xs text-[#A86450] italic">
                     Thengaparambil(H), Kumarakom, Kottayam
                   </p>
                 </div>
 
-                <div className="text-center py-4 bg-gradient-to-r from-transparent via-[#FFF7F4] to-transparent rounded-xl">
-                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
-                    ANEY K JOSEPH
-                  </h3>
-                  <p className="font-vibes text-3xl text-[#E5A995] my-1">&</p>
+                <div className="text-center py-4 bg-gradient-to-r from-transparent via-white to-transparent rounded-xl">
+              
                   <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
                     Adv. JOSEPH STEPHEN
                   </h3>
+                  <p className="font-vibes text-3xl text-[#E5A995] my-1">&</p>
+                  <h3 className="font-cinzel text-xl md:text-2xl font-bold text-[#D4AF37] tracking-widest">
+                    ANEY K JOSEPH
+                  </h3>
+                </div>
+
+                <div className="p-5 rounded-2xl max-w-2xl mx-auto text-center space-y-2">
+                  <p className="text-base font-bold text-[#5A4540] font-cinzel">
+                   D/O. Mr. K. A. Babukutty (Late) & Mrs. Luciamma Joseph
+                  </p>
+                  <p className="text-xs text-[#A86450] italic">
+                    Kadamthodu(H), Nalukody, Changanacherry
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E5A995]/20 max-w-2xl mx-auto">
@@ -871,7 +746,7 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            )}
+            
           </div>
         </section>
 
