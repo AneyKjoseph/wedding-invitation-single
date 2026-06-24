@@ -105,6 +105,8 @@ export default function App() {
         this.reset();
       }
 
+
+      
       reset() {
         this.x = Math.random() * width;
         this.y = Math.random() * -height - 20;
