@@ -566,7 +566,7 @@ export default function App() {
             </div>
 
             {/* Custom SVG Watercolor Couple & Flower Arch Illustration */}
-            <div className="w-full flex flex-col items-center -mt-20 mb-4" >
+            <div className="w-full flex flex-col items-center -mt-15 mb-4" >
               <img 
                 src= {image}
                 alt="Couple" 
@@ -588,7 +588,7 @@ export default function App() {
               Time until we say "I Do"
             </h3>
             {/* Glowing Ring-Dial Countdown Design */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto mb-12">
+            <div className="grid grid-cols-4 gap-2 max-w-2xl mx-auto mb-12">
               
               {/* DAYS DIAL */}
               <div className="bg-white/75 backdrop-blur-md rounded-3xl p-5 border border-[#E5A995]/25 shadow-lg relative overflow-hidden group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
