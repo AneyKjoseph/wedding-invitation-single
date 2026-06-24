@@ -3,7 +3,6 @@ import backgroundImage from './assets/image.png';
 import image from './assets/image_.png'; 
 import jaImage from './assets/logo.png'; 
 
-
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('wedding');
@@ -12,15 +11,7 @@ export default function App() {
   
   // Floating Interactive Hearts system
   const [loveHearts, setLoveHearts] = useState([]);
-  
-  // Custom RSVP and Wishes guestbook states
-  const [rsvpStatus, setRsvpStatus] = useState({ 
-    name: '', 
-    email: '', 
-    attending: 'both', 
-    dietary: 'Traditional Sadya', 
-    wishes: '' 
-  });
+
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
   const [newWish, setNewWish] = useState({ name: '', text: '' });
   
